@@ -9,6 +9,9 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = BaseUserAdmin.fieldsets + (
         ("Informations NexHR", {"fields": ("company", "role")}),
     )
+    add_fieldsets = BaseUserAdmin.add_fieldsets + (
+        ("Informations NexHR", {"fields": ("company", "role")}),
+    )
     
     list_display = ("email", "username", "role", "company", "is_active")
 
