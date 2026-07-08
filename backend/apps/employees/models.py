@@ -11,7 +11,11 @@ class Department(models.Model):
         on_delete=models.CASCADE,   
         related_name='departments',
     )
-    nom = models.CharField(max_length=255)  
+    nom = models.CharField(max_length=255) 
+    code = models.CharField(
+        max_length=50, 
+        blank=True, 
+        help_text="Préfixe court utilisé pour générer les matricules, ex:RH, IT, FIN") 
     description = models.TextField(blank=True,)
 
     manager = models.ForeignKey(
@@ -62,7 +66,7 @@ class Employee(models.Model):
         null=True,
     )
 
-    matricule = models.CharField(max_length=100)
+    matricule = models.CharField(max_length=100, blank=True)
     poste = models.CharField(max_length=255)
     type_contrat = models.CharField(
         max_length=50,
@@ -88,6 +92,24 @@ class Employee(models.Model):
     )
 
     date_creation = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.matricule:
+            self.matricule = self._generate_matricule()
+        super().save(*args, **kwargs)
+
+    def _generate_matricule(self):
+        if self.company.format_matricule == "departement" and self.department:
+            prefixe = self.department.code or "EMP"
+            nombre_existants = Employee.objects.filter(
+                company=self.company, department=self.department
+        ).count()
+        else:
+            prefixe = self.company.prefixe_matricule
+            nombre_existants = Employee.objects.filter(company=self.company).count()
+
+        numero = nombre_existants + 1
+        return f"{prefixe}-{numero:03d}"
 
 
     class Meta:

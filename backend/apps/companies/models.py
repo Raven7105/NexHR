@@ -18,6 +18,21 @@ class Company(models.Model):
         ],
         default="gratuit",
     )
+    format_matricule = models.CharField(
+        max_length=20,
+        choices=[
+            ("departement", "Préfixe département + number"),
+            ("entreprise", "Préfixe entreprise + number"),
+        ],
+        default="entreprise",
+    )
+
+    prefixe_matricule = models.CharField(
+        max_length=10, 
+        default="EMP",
+        help_text="Utilisé uniquement si le format est 'entreprise'. EX:NEX"
+    )
+
     actif = models.BooleanField(default=True)
 
     date_creation = models.DateTimeField(auto_now_add=True)
