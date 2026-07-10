@@ -78,6 +78,13 @@ class Employee(models.Model):
         ],
         default='cdi',
     )
+    salaire_de_base = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        help_text="Salaire brut mensuel de base, utilisé pour générer les bulletins de paie.",
+    )
+    nombre_personnes_charge = models.PositiveIntegerField(default=0)
     date_embauche = models.DateField()
     date_fin_contrat = models.DateField(blank=True, null=True)
     statut = models.CharField(

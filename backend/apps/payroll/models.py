@@ -54,6 +54,48 @@ class PayrollSetting(models.Model):
 
     def __str__(self):
         return f"Réglages paie {self.company.nom} (depuis {self.date_effet})"
+    
+
+
+
+
+class SalaryComponent(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="salary_components",
+    ) 
+    nom = models.CharField(max_length=150)
+    type_composant = models.CharField(
+        max_length=20,
+        choices=[
+            ("gain", "Gain (ajouté au brut)"),
+            ("retenue", "Retenue (déduite du net)"),
+        ]
+    )
+    imposable = models.BooleanField(
+        default=True,
+        help_text="Ce composant est-il soumis à l'IRPP?",
+    )
+    soumis_cnss = models.BooleanField(
+        default=True,
+        help_text="Ce composant est-il soumis aux cotiations CNSS?",
+    )
+
+    class Meta:
+        constraints =[
+            models.UniqueConstraint(
+                fields=["company", "nom"],
+                name="unique_salary_component_name_per_company",
+            
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.nom} ({self.get_type_composant_display()})"
+    
+
 
 
 class Payslip(models.Model):
@@ -103,3 +145,22 @@ class Payslip(models.Model):
 
     def __str__(self):
         return f"Bulletin {self.employee} - {self.mois}/{self.annee}"
+    
+
+class PayslipItem(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    payslip = models.ForeignKey(
+        Payslip, 
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+    salary_component = models.ForeignKey(
+        SalaryComponent, 
+        on_delete=models.PROTECT,
+        related_name="payslip_items",
+    )
+    montant = models.DecimalField(max_digits=12, decimal_places=2)
+
+
+    def __str__(self):
+        return f"{self.salary_component.nom}: {self.montant} ({self.payslip})"

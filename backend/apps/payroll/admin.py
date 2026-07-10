@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import PayrollSetting, Payslip
+from .models import PayrollSetting, Payslip, SalaryComponent, PayslipItem
 
 # Register your models here.
 
@@ -8,9 +8,21 @@ class PayrollSettingAdmin(admin.ModelAdmin):
     list_display = ("company", "date_effet", "taux_cnss_salariale", "taux_cnss_patronale")
 
 
+@admin.register(SalaryComponent)
+class SalaryComponentAdmin(admin.ModelAdmin):
+    list_display = ("nom", "company", "type_composant", "imposable", "soumis_cnss")
+    list_filter = ("company", "type_composant")
+
+
+class PayslipItemInline(admin.TabularInline):
+    model = PayslipItem
+    extra = 1
+
+
 @admin.register(Payslip)
 class PayslipAdmin(admin.ModelAdmin):
     list_display = ("employee", "mois", "annee", "salaire_brut", "salaire_net", "statut")
     list_filter = ("statut", "annee", "mois")
     search_fields = ("employee__user__first_name", "employee__user__last_name")
+    inlines = [PayslipItemInline]
 
