@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import nLogo from "../assets/n_logo.svg";
 
 export default function LoginPage() {
     const { login } = useAuth();
@@ -13,13 +14,15 @@ export default function LoginPage() {
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
         setError("");
+        setIsSubmitting(true);
         try {
             await login(email, password);
-            navigate ("/dashboard");
+            navigate("/dashboard");
         } catch {
             setError("Email ou mot de passe incorrect.");
+        } finally {
+            setIsSubmitting(false);
         }
-
     }
 
     return (
@@ -28,21 +31,26 @@ export default function LoginPage() {
             <div className="absolute bottom-[-15%] right-[10%] w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-3xl animate-blob animation-delay-2000" />
             <div className="absolute top-[20%] right-[30%] w-[300px] h-[300px] bg-cyan-500/15 rounded-full blur-3xl animate-blob animation-delay-4000" />
 
-            <div className="relative z-10 flex-1 w-full max-w-6xl mx-auto px-8 lg:px-16 pt-20 grid lg:grid-cols-2 gap-12 items-start">
-                <div className="hidden lg:block">
-                    <div className="w-11 h-11 bg-blue-600 rounded-xl flex items-center justify-center mb-10">
-                        <span className="text-white font-bold text-xl">N</span>
+            <div className="relative z-10 flex-1 w-full max-w-6xl mx-auto px-8 lg:px-16 pt-20 grid lg:grid-cols-[1.15fr_0.85fr] gap-16 xl:gap-24 items-start">
+                <div className="hidden lg:flex lg:flex-col lg:items-start lg:justify-start lg:pr-12 lg:pl-2">
+                    <div className="relative mb-8 inline-flex items-start justify-start">
+                        <div className="absolute inset-0 rounded-full bg-blue-500/20 blur-3xl" />
+                        <img
+                            src={nLogo}
+                            alt="Logo NexHR"
+                            className="relative h-28 w-28 object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]"
+                        />
                     </div>
 
-                    <h1 className="font-serif text-4xl xl:text-5xl font-medium text-white leading-[1.15] mb-6 tracking-tight">
+                    <h1 className="font-serif text-4xl xl:text-5xl font-medium text-white leading-[1.12] mb-8 tracking-[-0.02em] max-w-3xl">
                         GEREZ VOS EQUIPES ET VOS PROCESSUS RH EN TOUTE SIMPLICITE, OU QUE VOUS SOYEZ.
                     </h1>
-                    <p className="font-serif text-xl xl:text-xl font-medium text-white leading-[1.15] mb-6 tracking-tight">
-                        Présences, congés, paie et tableau de bord décisionnel tous vos outils RH réunis sur une seule plateforme.
+                    <p className="font-serif text-xl xl:text-[1.3rem] font-medium text-slate-200 leading-[1.35] mb-6 tracking-[0.01em] max-w-2xl">
+                        Présences, congés, paie et tableau de bord décisionnel : tous vos outils RH réunis sur une seule plateforme.
                     </p>
                 </div>
 
-                <div className="relative bg-white rounded-3xl shadow-2xl p-10 w-full max-w-md mx-auto lg:mx-0 overflow-hidden">
+                <div className="relative bg-white rounded-3xl shadow-2xl p-10 w-full max-w-md mx-auto lg:ml-auto lg:mr-0 overflow-hidden">
                     <div
                         className="absolute -top-10 -right-10 w-40 h-40 rounded-full opacity-60 pointer-events-none"
                         style={{
@@ -52,8 +60,12 @@ export default function LoginPage() {
                     />
 
                     <div className="lg:hidden flex items-center gap-3 mb-8 relative z-10">
-                        <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
-                            <span className="text-white font-bold">N</span>
+                        <div className="relative flex h-14 w-14 items-center justify-center">
+                            <img
+                                src={nLogo}
+                                alt="Logo NexHR"
+                                className="relative h-12 w-12 object-contain"
+                            />
                         </div>
                         <span className="text-slate-900 font-bold text-lg">NexHR</span>
                     </div>
