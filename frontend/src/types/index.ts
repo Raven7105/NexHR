@@ -34,6 +34,7 @@ export interface Employee {
     salaire_de_base: string;
     nombre_personnes_charge: number;
     date_embauche: string;
+    date_naissance: string | null;
     date_fin_contrat: string | null;
     statut: "actif" | "inactif" | "suspendu";
     user: string;
