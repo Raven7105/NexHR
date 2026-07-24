@@ -86,6 +86,7 @@ class Employee(models.Model):
     )
     nombre_personnes_charge = models.PositiveIntegerField(default=0)
     date_embauche = models.DateField()
+    date_naissance = models.DateField(null=True, blank=True)
     date_fin_contrat = models.DateField(blank=True, null=True)
     statut = models.CharField(
         max_length=50,
