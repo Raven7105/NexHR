@@ -19,3 +19,4 @@ class AttendanceViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = AttendanceSerializer
     company_lookup = "employee__company"
     permission_classes = [IsAdminOrOwnManagerOrReadOnly]
+    filterset_fields = ["statut", "date", "employee"]

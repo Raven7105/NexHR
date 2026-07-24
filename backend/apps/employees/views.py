@@ -18,3 +18,4 @@ class EmployeeViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
     permission_classes = [IsAdminOrManagerOrReadOnly]
+    filterset_fields = ["department", "statut", "type_contrat"]

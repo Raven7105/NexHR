@@ -26,3 +26,4 @@ class LeaveRequestViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = LeaveRequestSerializer
     company_lookup = "employee__company"
     permission_classes = [IsAdminOrOwnManagerOrReadOnly]
+    filterset_fields = ["statut", "employee", "leave_type"]
