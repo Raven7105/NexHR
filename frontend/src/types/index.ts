@@ -28,6 +28,8 @@ export interface Department {
 
 export interface Employee {
     id: string;
+    nom_complet: string;
+    email: string;
     matricule: string;
     poste: string;
     type_contrat: "cdi" | "cdd" | "stage" | "freelance";

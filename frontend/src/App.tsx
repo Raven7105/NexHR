@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 import LoginPage from "./pages/LoginPage";
 import DashboardLayout from "./components/DashboardLayout";
 import { useAuth } from "./context/AuthContext";
+import DashboardPage from "./pages/DashboardPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -32,7 +33,7 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route path="/dashboard" element={<div>Dashboard (à construire)</div>} />
+          <Route path="/dashboard" element={<DashboardPage/>} />
           <Route path="/employees" element={<div>Employés (à construire)</div>} />
           <Route path="/departments" element={<div>Départements (à construire)</div>} />
           <Route path="/attendance" element={<div>Présences (à construire)</div>} />
