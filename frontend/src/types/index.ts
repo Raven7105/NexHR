@@ -84,6 +84,7 @@ export interface LeaveRequest {
     leave_type: string;
     validateur: string | null;
     date_validation: string | null;
+    date_creation: string;
     commentaire_validateur: string;
 }
 

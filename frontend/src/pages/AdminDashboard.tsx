@@ -14,6 +14,16 @@ export default function AdminDashboardPage() {
 
     const today = new Date().toISOString().split("T")[0];
     const { data: attendancesData } = useAttendances({ date: today });
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    const DateApres = sevenDaysAgo.toISOString().split("T")[0];
+    const DateAvant = today;
+
+    const { data: weekAttendanceData } = useAttendances({
+        date_apres : DateApres,
+        date_avant : DateAvant,
+
+    })
 
     const totalEmployees = employeesData?.count ?? 0;
     const employees = employeesData?.results ?? [];
@@ -33,6 +43,20 @@ export default function AdminDashboardPage() {
         nom: dept.nom,
         effectif: employees.filter((e) => e.department === dept.id).length,
     }));
+
+    const attendanceChartData = Array.from({ length: 7 }).map((_, i) => {
+        const date = new Date(sevenDaysAgo);
+        date.setDate(sevenDaysAgo.getDate() + i);
+        const dateStr = date.toISOString().split("T")[0];
+
+        const dayAttendance = weekAttendanceData?.filter((a) => a.date === dateStr) ?? [];
+
+        return {
+            day: date.toLocaleDateString("fr-FR", { weekday: "short" }),
+            presents: dayAttendance.filter((a) => a.statut === "present").length,
+            absents: dayAttendance.filter((a) => a.statut === "absent").length,
+        };
+    });
 
 
     const birthdaysThisMonth = employees.filter((e) => {
@@ -58,7 +82,7 @@ export default function AdminDashboardPage() {
             data: { statut: "rejete", date_validation: new Date().toISOString() },
         });
     }
-    const isLoading = !employeesData || !pendingLeavesData || !attendancesData;
+    const isLoading = !employeesData || !pendingLeavesData || !attendancesData || !weekAttendanceData;
 
     if (isLoading) {
         return (
