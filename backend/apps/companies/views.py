@@ -1,12 +1,15 @@
-from django.shortcuts import render
-
 from rest_framework import viewsets
-from .serializers import CompanySerializer
+from rest_framework.permissions import IsAuthenticated
 from .models import Company
-
-# Create your views here.
+from .serializers import CompanySerializer
 
 
 class CompanyViewSet(viewsets.ModelViewSet):
-    queryset = Company.objects.all()
     serializer_class = CompanySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == "super_admin":
+            return Company.objects.all()
+        return Company.objects.filter(id=user.company_id)
