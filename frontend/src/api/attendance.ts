@@ -18,13 +18,15 @@ export async function createHoliday(
 export interface AttendanceFilters {
     employee?: string;
     date?: string;
+    date_apres?: string;
+    date_avant?: string;
     page?: number;
 }
 
 export async function getAttendances(
     filters: AttendanceFilters = {}
-): Promise<PaginatedResponse<Attendance>> {
-    const response = await api.get<PaginatedResponse<Attendance>>("/attendances/", {
+): Promise<Attendance[]> {
+    const response = await api.get<Attendance[]>("/attendances/", {
         params: filters,
     });
     return response.data;

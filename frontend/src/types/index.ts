@@ -9,12 +9,20 @@ export interface Company {
     actif: boolean;
     date_creation: string;
 }
+export interface EmployeeProfile {
+    id: string;
+    matricule: string;
+    poste: string;
+    department: string | null;
+    manager: string | null;
+}
 
 export interface User {
     id: string;
     email: string;
     role: "super_admin" | "admin_rh" | "manager" | "employe";
     company: string | null;
+    employee_profile: EmployeeProfile | null;
 }
 
 export interface Department {
@@ -44,7 +52,7 @@ export interface Employee {
     department: string | null;
     manager: string | null;
 }
-export type CreateEmployeeInput = Omit<Employee,"id" | "matricule">;
+export type CreateEmployeeInput = Omit<Employee, "id" | "matricule">;
 
 export type UpdateEmployeeInput = Partial<CreateEmployeeInput>;
 

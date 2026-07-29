@@ -4,18 +4,18 @@ import { useAuth } from "../context/AuthContext";
 import nLogo from "../assets/n_logo.svg";
 
 const navItems = [
-    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/employees", label: "Employés", icon: Users },
-    { to: "/departments", label: "Départements", icon: Building2 },
-    { to: "/attendance", label: "Présences", icon: Clock },
-    { to: "/calendar", label: "Calendrier", icon: Calendar },
-    { to: "/leaves", label: "Congés", icon: FileText },
-    { to: "/payroll", label: "Paie", icon: Wallet },
+    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["super_admin", "admin_rh", "manager", "employe"] },
+    { to: "/employees", label: "Employés", icon: Users, roles: ["super_admin", "admin_rh", "manager"] },
+    { to: "/departments", label: "Départements", icon: Building2, roles: ["super_admin", "admin_rh"] },
+    { to: "/attendance", label: "Présences", icon: Clock, roles: ["super_admin", "admin_rh", "manager", "employe"] },
+    { to: "/calendar", label: "Calendrier", icon: Calendar, roles: ["super_admin", "admin_rh", "manager", "employe"] },
+    { to: "/leaves", label: "Congés", icon: FileText, roles: ["super_admin", "admin_rh", "manager", "employe"] },
+    { to: "/payroll", label: "Paie", icon: Wallet, roles: ["super_admin", "admin_rh"] },
 ];
 
 const configItems = [
-    { to: "/organization-chart", label: "Organigramme", icon: Network },
-    { to: "/settings", label: "Paramètres", icon: Settings },
+    { to: "/organization-chart", label: "Organigramme", icon: Network, roles: ["super_admin", "admin_rh", "manager", "employe"] },
+    { to: "/settings", label: "Paramètres", icon: Settings, roles: ["super_admin", "admin_rh"] },
 ];
 
 interface SidebarProps {
@@ -25,6 +25,8 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const { user, logout } = useAuth();
+    const visibleNavItems = navItems.filter((item) => user && item.roles.includes(user.role));
+    const visibleConfigItems = configItems.filter((item) => user && item.roles.includes(user.role));
 
     return (
         <>
@@ -58,7 +60,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             Menu principal
                         </p>
                         <div className="space-y-1">
-                            {navItems.map(({ to, label, icon: Icon }) => (
+                            {visibleNavItems.map(({ to, label, icon: Icon }) => (
                                 <NavLink
                                     key={to}
                                     to={to}
@@ -82,7 +84,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             Configuration
                         </p>
                         <div className="space-y-1">
-                            {configItems.map(({ to, label, icon: Icon }) => (
+                            {visibleConfigItems.map(({ to, label, icon: Icon }) => (
                                 <NavLink
                                     key={to}
                                     to={to}
