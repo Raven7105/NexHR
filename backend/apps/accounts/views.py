@@ -27,5 +27,6 @@ class MeView(APIView):
             "email": user.email,
             "role": user.role,
             "company": str(user.company_id) if user.company_id else None,
+            "company_nom": user.company.nom if user.company else None,
             "employee_profile": employee_profile,
         })

@@ -23,6 +23,7 @@ export default function EmployeeCards({ employees }: { employees: Employee[] }) 
                         <div className="min-w-0">
                             <p className="font-medium text-foreground truncate">{employee.nom_complet}</p>
                             <p className="text-sm text-muted-foreground truncate">{employee.poste}</p>
+                            <p className="text-xs text-muted-foreground truncate">{employee.department_nom ?? "—"}</p>
                         </div>
                     </div>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">

@@ -20,8 +20,8 @@ export default function AdminDashboardPage() {
     const DateAvant = today;
 
     const { data: weekAttendanceData } = useAttendances({
-        date_apres : DateApres,
-        date_avant : DateAvant,
+        date_apres: DateApres,
+        date_avant: DateAvant,
 
     })
 

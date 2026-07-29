@@ -22,6 +22,7 @@ export interface User {
     email: string;
     role: "super_admin" | "admin_rh" | "manager" | "employe";
     company: string | null;
+    company_nom: string | null;
     employee_profile: EmployeeProfile | null;
 }
 
@@ -38,6 +39,7 @@ export interface Employee {
     id: string;
     nom_complet: string;
     email: string;
+    department_nom: string | null;
     matricule: string;
     poste: string;
     type_contrat: "cdi" | "cdd" | "stage" | "freelance";

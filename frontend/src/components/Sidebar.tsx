@@ -48,9 +48,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <X size={20} />
                 </button>
 
-                <div className="p-3 flex items-center justify-center">
-                    <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0">
-                        <img src={nLogo} alt="NexHR" className="w-full h-full object-contain" />
+                <div className="p-4 flex items-center gap-3">
+                    <img src={nLogo} alt="NexHR" className="w-10 h-10 shrink-0" />
+                    <div className="min-w-0">
+                        <p className="text-white font-bold text-sm leading-tight">NexHR</p>
+                        <p className="text-xs text-slate-400 truncate">
+                            {user?.company_nom ?? "Plateforme RH"}
+                        </p>
                     </div>
                 </div>
 

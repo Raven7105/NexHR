@@ -11,6 +11,8 @@ class DepartmentSerializer(serializers.ModelSerializer):
 class EmployeeSerializer(serializers.ModelSerializer):
     nom_complet = serializers.SerializerMethodField()
     email = serializers.EmailField(source="user.email", read_only=True)
+    department_nom = serializers.CharField(source="department.nom", read_only=True, default=None)
+
 
     class Meta:
         model = Employee

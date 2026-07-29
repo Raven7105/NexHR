@@ -14,6 +14,7 @@ export default function EmployeeTable({ employees }: { employees: Employee[] }) 
                 <thead>
                     <tr className="border-b border-border bg-muted/50">
                         <th className="text-left font-medium text-muted-foreground px-4 py-3">Employé</th>
+                        <th className="text-left font-medium text-muted-foreground px-4 py-3">Département</th>
                         <th className="text-left font-medium text-muted-foreground px-4 py-3">Matricule</th>
                         <th className="text-left font-medium text-muted-foreground px-4 py-3">Poste</th>
                         <th className="text-left font-medium text-muted-foreground px-4 py-3">Contrat</th>
@@ -36,6 +37,7 @@ export default function EmployeeTable({ employees }: { employees: Employee[] }) 
                                     </span>
                                 </Link>
                             </td>
+                            <td className="px-4 py-3 text-muted-foreground">{employee.department_nom ?? "—"}</td>
                             <td className="px-4 py-3 text-muted-foreground">{employee.matricule}</td>
                             <td className="px-4 py-3 text-muted-foreground">{employee.poste}</td>
                             <td className="px-4 py-3 text-muted-foreground uppercase text-xs">
