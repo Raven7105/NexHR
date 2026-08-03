@@ -5,6 +5,8 @@ import DashboardLayout from "./components/DashboardLayout";
 import { useAuth } from "./context/AuthContext";
 import DashboardPage from "./pages/DashboardPage";
 import EmployeesPage from "./pages/EmployeesPage";
+import EmployeeDetailPage from "./pages/EmployeeDetailPage";
+
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -36,6 +38,7 @@ function App() {
         >
           <Route path="/dashboard" element={<DashboardPage/>} />
           <Route path="/employees" element={<EmployeesPage/>} />
+          <Route path="/employees/:id" element={<EmployeeDetailPage />} />
           <Route path="/departments" element={<div>Départements (à construire)</div>} />
           <Route path="/attendance" element={<div>Présences (à construire)</div>} />
           <Route path="/calendar" element={<div>Calendrier (à construire)</div>} />
