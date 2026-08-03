@@ -6,7 +6,7 @@ import EmployeeDashboard from "./EmployeeDashboard";
 export default function DashboardPage() {
     const { user } = useAuth();
 
-    if (user?.role === "admin_rh" || user?.role === "super_admin") {
+    if (user?.role === "admin_rh" || user?.role === "superadmin") {
         return <AdminDashboard />;
     }
 

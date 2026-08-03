@@ -1,4 +1,4 @@
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Mail, Briefcase, Calendar, Building2 } from "lucide-react";
 import { useEmployee } from "@/hooks/useEmployees";
 import { useLeaveRequests } from "@/hooks/useLeaves";

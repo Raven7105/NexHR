@@ -7,6 +7,7 @@ import DashboardPage from "./pages/DashboardPage";
 import EmployeesPage from "./pages/EmployeesPage";
 import EmployeeDetailPage from "./pages/EmployeeDetailPage";
 import EmployeeFormPage from "./pages/EmployeeFormPage";
+import DepartmentsPage from "./pages/DepartmentsPage";
 
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -41,7 +42,7 @@ function App() {
           <Route path="/employees" element={<EmployeesPage/>} />
           <Route path="/employees/:id" element={<EmployeeDetailPage />} />
           <Route path="/employees/new" element={<EmployeeFormPage />} />
-          <Route path="/departments" element={<div>Départements (à construire)</div>} />
+          <Route path="/departments" element={<DepartmentsPage />} />
           <Route path="/attendance" element={<div>Présences (à construire)</div>} />
           <Route path="/calendar" element={<div>Calendrier (à construire)</div>} />
           <Route path="/leaves" element={<div>Congés (à construire)</div>} />

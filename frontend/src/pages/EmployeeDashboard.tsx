@@ -1,4 +1,4 @@
-import { Calendar, Clock, Wallet, TrendingUp, Cake, Building2 } from "lucide-react";
+import { Calendar, Clock, Wallet, TrendingUp, Building2 } from "lucide-react";
 import { LineChart, Line, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend, } from "recharts";
 import { useAuth } from "@/context/AuthContext";
 import { useLeaveBalances, useLeaveRequests } from "@/hooks/useLeaves";
