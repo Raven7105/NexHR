@@ -24,6 +24,7 @@ export default function EmployeeFormPage() {
         type_contrat: "cdi",
         date_embauche: new Date().toISOString().split("T")[0],
         date_naissance: null,
+        phone_number: "",
         date_fin_contrat: null,
         salaire_de_base: "0",
         nombre_personnes_charge: 0,
@@ -217,6 +218,17 @@ export default function EmployeeFormPage() {
                                 className={inputClass}
                             />
                         </div>
+                    </div>
+
+                    <div>
+                        <label className={labelClass}>Numéro de téléphone</label>
+                        <input
+                            type="tel"
+                            value={formData.phone_number ?? ""}
+                            onChange={(e) => handleChange("phone_number", e.target.value)}
+                            className={inputClass}
+                            placeholder="+221 77 123 45 67"
+                        />
                     </div>
 
                     <div>

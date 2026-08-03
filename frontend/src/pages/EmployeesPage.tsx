@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { LayoutGrid, List, Search, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -10,8 +10,10 @@ export default function EmployeesPage() {
     const { user } = useAuth();
     const [viewMode, setViewMode] = useState<"table" | "cards">("table");
     const [search, setSearch] = useState("");
+    const [sortBy, setSortBy] = useState<"date_creation" | "nom_complet" | "poste">("date_creation");
+    const [page, setPage] = useState(1);
 
-    const { data: employeesData, isLoading } = useEmployees({ search: search || undefined });
+    const { data: employeesData, isLoading } = useEmployees({ search: search || undefined, ordering: sortBy, page });
 
     const canManageEmployees = user?.role === "admin_rh" || user?.role === "superadmin";
 
@@ -23,6 +25,18 @@ export default function EmployeesPage() {
             : user?.role === "employe"
                 ? employees.filter((e) => e.id === user.employee_profile?.id)
                 : employees;
+
+    const sortedEmployees = useMemo(() => [...visibleEmployees].sort((a, b) => {
+        if (sortBy === "nom_complet") {
+            return a.nom_complet.localeCompare(b.nom_complet);
+        }
+        if (sortBy === "poste") {
+            return a.poste.localeCompare(b.poste);
+        }
+        return new Date(b.date_embauche).getTime() - new Date(a.date_embauche).getTime();
+    }), [sortBy, visibleEmployees]);
+
+    const totalPages = Math.max(1, Math.ceil((employeesData?.count ?? 0) / 20));
 
     return (
         <div>
@@ -63,7 +77,17 @@ export default function EmployeesPage() {
                         />
                     </div>
 
-                    <div className="flex items-center border border-border rounded-lg overflow-hidden shrink-0">
+                    <div className="flex items-center gap-2">
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value as "date_creation" | "nom_complet" | "poste")}
+                            className="border border-border rounded-lg px-3 py-2 text-sm bg-background"
+                        >
+                            <option value="date_creation">Date d’embauche</option>
+                            <option value="nom_complet">Nom</option>
+                            <option value="poste">Poste</option>
+                        </select>
+                        <div className="flex items-center border border-border rounded-lg overflow-hidden shrink-0">
                         <button
                             onClick={() => setViewMode("table")}
                             className={`p-2 transition-colors ${viewMode === "table" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
@@ -80,6 +104,7 @@ export default function EmployeesPage() {
                         >
                             <LayoutGrid size={16} />
                         </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -88,14 +113,32 @@ export default function EmployeesPage() {
                 <div className="flex items-center justify-center h-64">
                     <p className="text-muted-foreground">Chargement...</p>
                 </div>
-            ) : visibleEmployees.length === 0 ? (
+            ) : sortedEmployees.length === 0 ? (
                 <div className="flex items-center justify-center h-64">
                     <p className="text-muted-foreground">Aucun employé trouvé.</p>
                 </div>
             ) : viewMode === "table" ? (
-                <EmployeeTable employees={visibleEmployees} />
+                <>
+                    <EmployeeTable employees={sortedEmployees} />
+                    <div className="flex items-center justify-between mt-4">
+                        <p className="text-sm text-muted-foreground">Page {page} sur {totalPages}</p>
+                        <div className="flex gap-2">
+                            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-2 rounded-lg border border-border text-sm disabled:opacity-50">Précédent</button>
+                            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-2 rounded-lg border border-border text-sm disabled:opacity-50">Suivant</button>
+                        </div>
+                    </div>
+                </>
             ) : (
-                <EmployeeCards employees={visibleEmployees} />
+                <>
+                    <EmployeeCards employees={sortedEmployees} />
+                    <div className="flex items-center justify-between mt-4">
+                        <p className="text-sm text-muted-foreground">Page {page} sur {totalPages}</p>
+                        <div className="flex gap-2">
+                            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-2 rounded-lg border border-border text-sm disabled:opacity-50">Précédent</button>
+                            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-2 rounded-lg border border-border text-sm disabled:opacity-50">Suivant</button>
+                        </div>
+                    </div>
+                </>
             )}
         </div>
     );

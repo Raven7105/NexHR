@@ -87,6 +87,7 @@ class Employee(models.Model):
     nombre_personnes_charge = models.PositiveIntegerField(default=0)
     date_embauche = models.DateField()
     date_naissance = models.DateField(null=True, blank=True)
+    phone_number = models.CharField(max_length=20, blank=True, default="")
     date_fin_contrat = models.DateField(blank=True, null=True)
     statut = models.CharField(
         max_length=50,
@@ -98,6 +99,8 @@ class Employee(models.Model):
         ],
         default='actif',
     )
+    is_active = models.BooleanField(default=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     date_creation = models.DateTimeField(auto_now_add=True)
 
@@ -127,6 +130,7 @@ class Employee(models.Model):
                 name="unique_employee_matricule_per_company"
             )
         ]
+        ordering = ["-date_creation"]
 
     def __str__(self):
         return f"{self.user.get_full_name()} ({self.poste})"  

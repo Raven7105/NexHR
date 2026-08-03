@@ -15,7 +15,6 @@ class EmployeeSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source="user.email", read_only=True)
     department_nom = serializers.CharField(source="department.nom", read_only=True, default=None)
 
-
     class Meta:
         model = Employee
         fields = "__all__"
@@ -23,7 +22,6 @@ class EmployeeSerializer(serializers.ModelSerializer):
     def get_nom_complet(self, obj):
         full_name = obj.user.get_full_name()
         return full_name if full_name else obj.user.email
-
 
 
 class EmployeeCreateSerializer(serializers.Serializer):
@@ -43,6 +41,7 @@ class EmployeeCreateSerializer(serializers.Serializer):
     type_contrat = serializers.ChoiceField(choices=Employee._meta.get_field("type_contrat").choices, default="cdi")
     date_embauche = serializers.DateField()
     date_naissance = serializers.DateField(required=False, allow_null=True)
+    phone_number = serializers.CharField(required=False, allow_blank=True, default="")
     date_fin_contrat = serializers.DateField(required=False, allow_null=True)
     salaire_de_base = serializers.DecimalField(max_digits=12, decimal_places=2, default=0)
     nombre_personnes_charge = serializers.IntegerField(default=0)
@@ -73,3 +72,34 @@ class EmployeeCreateSerializer(serializers.Serializer):
             **{k: v for k, v in validated_data.items() if k != "email"},
         )
         return employee
+
+
+class EmployeeUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Employee
+        fields = [
+            "poste",
+            "department",
+            "manager",
+            "type_contrat",
+            "salaire_de_base",
+            "nombre_personnes_charge",
+            "date_embauche",
+            "date_naissance",
+            "phone_number",
+            "date_fin_contrat",
+            "statut",
+            "matricule",
+            "is_active",
+        ]
+
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["email", "first_name", "last_name", "role"]
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exclude(pk=self.instance.pk).exists():
+            raise serializers.ValidationError("Cet email est déjà utilisé.")
+        return value

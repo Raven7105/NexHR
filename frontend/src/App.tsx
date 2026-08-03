@@ -7,6 +7,7 @@ import DashboardPage from "./pages/DashboardPage";
 import EmployeesPage from "./pages/EmployeesPage";
 import EmployeeDetailPage from "./pages/EmployeeDetailPage";
 import EmployeeFormPage from "./pages/EmployeeFormPage";
+import EmployeeEditPage from "./pages/EmployeeEditPage";
 import DepartmentsPage from "./pages/DepartmentsPage";
 
 
@@ -41,6 +42,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage/>} />
           <Route path="/employees" element={<EmployeesPage/>} />
           <Route path="/employees/:id" element={<EmployeeDetailPage />} />
+          <Route path="/employees/:id/edit" element={<EmployeeEditPage />} />
           <Route path="/employees/new" element={<EmployeeFormPage />} />
           <Route path="/departments" element={<DepartmentsPage />} />
           <Route path="/attendance" element={<div>Présences (à construire)</div>} />

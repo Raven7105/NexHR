@@ -11,6 +11,7 @@ export interface EmployeeFilters {
     search?: string;
     department?: string;
     statut?: string;
+    ordering?: string;
     page?: number;
 }
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Building2, Pencil, Trash2 } from "lucide-react";
+import { Plus, Building2, Pencil, Trash2, Users, Briefcase } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import {
     useDepartments,
@@ -25,6 +25,8 @@ export default function DepartmentsPage() {
     const canManage = user?.role === "admin_rh" || user?.role === "superadmin";
     const departments = departmentsData?.results ?? [];
     const employees = employeesData?.results ?? [];
+    const departmentsWithManager = departments.filter((dept) => dept.manager).length;
+    const totalEmployeesInDepartments = employees.filter((emp) => emp.department).length;
 
     function openCreateModal() {
         setEditingDepartment(null);
@@ -79,7 +81,7 @@ export default function DepartmentsPage() {
                 <div>
                     <h1 className="text-2xl font-bold text-foreground">Départements</h1>
                     <p className="text-muted-foreground text-sm mt-1">
-                        {departments.length} département{departments.length > 1 ? "s" : ""}
+                        {departments.length} département{departments.length > 1 ? "s" : ""} · {totalEmployeesInDepartments} employé{totalEmployeesInDepartments > 1 ? "s" : ""} rattachés
                     </p>
                 </div>
                 {canManage && (
@@ -91,6 +93,30 @@ export default function DepartmentsPage() {
                         Ajouter un département
                     </button>
                 )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-card border border-border rounded-xl p-4">
+                    <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                        <Building2 size={16} />
+                        <span className="text-sm">Total</span>
+                    </div>
+                    <p className="text-2xl font-bold text-foreground">{departments.length}</p>
+                </div>
+                <div className="bg-card border border-border rounded-xl p-4">
+                    <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                        <Users size={16} />
+                        <span className="text-sm">Responsables</span>
+                    </div>
+                    <p className="text-2xl font-bold text-foreground">{departmentsWithManager}</p>
+                </div>
+                <div className="bg-card border border-border rounded-xl p-4">
+                    <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                        <Briefcase size={16} />
+                        <span className="text-sm">Employés rattachés</span>
+                    </div>
+                    <p className="text-2xl font-bold text-foreground">{totalEmployeesInDepartments}</p>
+                </div>
             </div>
 
             {isLoading ? (
@@ -108,7 +134,7 @@ export default function DepartmentsPage() {
                         const employeeCount = employees.filter((e) => e.department === dept.id).length;
 
                         return (
-                            <div key={dept.id} className="bg-card border border-border rounded-xl p-5">
+                            <div key={dept.id} className="bg-card border border-border rounded-xl p-5 hover:border-blue-300 transition-colors">
                                 <div className="flex items-start justify-between mb-3">
                                     <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
                                         <Building2 className="text-purple-600" size={20} />
@@ -132,13 +158,18 @@ export default function DepartmentsPage() {
                                 </div>
                                 <h3 className="font-semibold text-foreground">{dept.nom}</h3>
                                 <p className="text-xs text-muted-foreground mb-3">Code : {dept.code || "—"}</p>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-muted-foreground">
-                                        {employeeCount} employé{employeeCount > 1 ? "s" : ""}
-                                    </span>
-                                    <span className="text-muted-foreground">
-                                        {manager ? manager.nom_complet : "Pas de responsable"}
-                                    </span>
+                                <p className="text-sm text-muted-foreground mb-4">
+                                    {dept.description || "Aucune description pour ce département."}
+                                </p>
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-muted-foreground">Employés</span>
+                                        <span className="font-medium text-foreground">{employeeCount}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-muted-foreground">Responsable</span>
+                                        <span className="font-medium text-foreground">{manager ? manager.nom_complet : "Aucun"}</span>
+                                    </div>
                                 </div>
                             </div>
                         );

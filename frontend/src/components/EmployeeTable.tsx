@@ -1,4 +1,7 @@
 import { Link } from "react-router-dom";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { useDeleteEmployee } from "@/hooks/useEmployees";
 import type { Employee } from "@/types";
 
 const STATUT_STYLES: Record<string, string> = {
@@ -8,6 +11,21 @@ const STATUT_STYLES: Record<string, string> = {
 };
 
 export default function EmployeeTable({ employees }: { employees: Employee[] }) {
+    const deleteEmployee = useDeleteEmployee();
+
+    const handleDelete = (employee: Employee) => {
+        toast("Supprimer définitivement cet employé ?", {
+            action: {
+                label: "Confirmer",
+                onClick: () => deleteEmployee.mutate(employee.id),
+            },
+            cancel: {
+                label: "Annuler",
+                onClick: () => undefined,
+            },
+        });
+    };
+
     return (
         <div className="bg-card border border-border rounded-xl overflow-hidden">
             <table className="w-full text-sm">
@@ -19,6 +37,7 @@ export default function EmployeeTable({ employees }: { employees: Employee[] }) 
                         <th className="text-left font-medium text-muted-foreground px-4 py-3">Poste</th>
                         <th className="text-left font-medium text-muted-foreground px-4 py-3">Contrat</th>
                         <th className="text-left font-medium text-muted-foreground px-4 py-3">Statut</th>
+                        <th className="text-left font-medium text-muted-foreground px-4 py-3">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -49,6 +68,20 @@ export default function EmployeeTable({ employees }: { employees: Employee[] }) 
                                 >
                                     {employee.statut}
                                 </span>
+                            </td>
+                            <td className="px-4 py-3">
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleDelete(employee);
+                                    }}
+                                    className="inline-flex items-center gap-1 rounded-md border border-red-200 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                                    title="Supprimer"
+                                >
+                                    <Trash2 size={14} />
+                                    Supprimer
+                                </button>
                             </td>
                         </tr>
                     ))}

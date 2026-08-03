@@ -49,21 +49,24 @@ export interface Employee {
     nombre_personnes_charge: number;
     date_embauche: string;
     date_naissance: string | null;
+    phone_number: string;
     date_fin_contrat: string | null;
-    statut: "actif" | "inactif" | "suspendu";
+    statut: "actif" | "inactif" | "suspendu" | "en_conge";
     user: string;
     company: string;
     department: string | null;
     manager: string | null;
+    is_active: boolean;
+    deleted_at: string | null;
 }
-export type CreateEmployeeInput = Omit<Employee, "id" | "matricule">;
+export type CreateEmployeeInput = Omit<Employee, "id" | "matricule" | "is_active" | "deleted_at">;
 
 export type UpdateEmployeeInput = Partial<CreateEmployeeInput>;
 
 export interface CreateEmployeeWithUserInput {
   email: string;
   password: string;
-  role: "super_admin" | "admin_rh" | "manager" | "employe";
+  role: "superadmin" | "admin_rh" | "manager" | "employe";
   first_name?: string;
   last_name?: string;
   poste: string;
@@ -72,6 +75,7 @@ export interface CreateEmployeeWithUserInput {
   type_contrat: "cdi" | "cdd" | "stage" | "freelance";
   date_embauche: string;
   date_naissance?: string | null;
+  phone_number?: string;
   date_fin_contrat?: string | null;
   salaire_de_base: string;
   nombre_personnes_charge?: number;
