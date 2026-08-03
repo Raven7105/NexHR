@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { LayoutGrid, List, Search, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useEmployees } from "@/hooks/useEmployees";
 import EmployeeTable from "@/components/EmployeeTable";
@@ -12,7 +13,7 @@ export default function EmployeesPage() {
 
     const { data: employeesData, isLoading } = useEmployees({ search: search || undefined });
 
-    const canManageEmployees = user?.role === "admin_rh" || user?.role === "super_admin";
+    const canManageEmployees = user?.role === "admin_rh" || user?.role === "superadmin";
 
     const employees = employeesData?.results ?? [];
 
@@ -36,10 +37,13 @@ export default function EmployeesPage() {
                 </div>
 
                 {canManageEmployees && (
-                    <button className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">
+                    <Link
+                        to="/employees/new"
+                        className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+                    >
                         <Plus size={16} />
                         Ajouter un employé
-                    </button>
+                    </Link>
                 )}
             </div>
 

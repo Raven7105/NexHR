@@ -6,9 +6,14 @@ import {
     createEmployee,
     updateEmployee,
     deleteEmployee,
+    createEmployeeWithUser,
     type EmployeeFilters,
 } from "@/api/employees";
-import type { CreateEmployeeInput, UpdateEmployeeInput } from "@/types";
+import type {
+    CreateEmployeeInput,
+    CreateEmployeeWithUserInput,
+    UpdateEmployeeInput,
+} from "@/types";
 
 export function useEmployees(filters: EmployeeFilters = {}) {
     return useQuery({
@@ -66,4 +71,23 @@ export function useDeleteEmployee() {
             toast.error(error?.response?.data?.detail || "Impossible de supprimer l'employé.");
         },
     });
+}
+
+export function useCreateEmployeeWithUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateEmployeeWithUserInput) => createEmployeeWithUser(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      toast.success("Employé créé avec succès.");
+    },
+    onError: (error: any) => {
+      const detail = error?.response?.data;
+      const message =
+        typeof detail === "object" && detail !== null
+          ? Object.values(detail).flat().join(" ")
+          : "Impossible de créer l'employé.";
+      toast.error(message);
+    },
+  });
 }

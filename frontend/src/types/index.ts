@@ -1,3 +1,5 @@
+
+
 export interface Company {
     id: string;
     nom: string;
@@ -20,7 +22,7 @@ export interface EmployeeProfile {
 export interface User {
     id: string;
     email: string;
-    role: "super_admin" | "admin_rh" | "manager" | "employe";
+    role: "superadmin" | "admin_rh" | "manager" | "employe";
     company: string | null;
     company_nom: string | null;
     employee_profile: EmployeeProfile | null;
@@ -58,6 +60,22 @@ export type CreateEmployeeInput = Omit<Employee, "id" | "matricule">;
 
 export type UpdateEmployeeInput = Partial<CreateEmployeeInput>;
 
+export interface CreateEmployeeWithUserInput {
+  email: string;
+  password: string;
+  role: "super_admin" | "admin_rh" | "manager" | "employe";
+  first_name?: string;
+  last_name?: string;
+  poste: string;
+  department?: string | null;
+  manager?: string | null;
+  type_contrat: "cdi" | "cdd" | "stage" | "freelance";
+  date_embauche: string;
+  date_naissance?: string | null;
+  date_fin_contrat?: string | null;
+  salaire_de_base: string;
+  nombre_personnes_charge?: number;
+}
 export interface LeaveType {
     id: string;
     nom: string;

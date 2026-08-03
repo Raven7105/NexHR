@@ -4,6 +4,7 @@ import type {
     CreateEmployeeInput,
     UpdateEmployeeInput,
     PaginatedResponse,
+    CreateEmployeeWithUserInput,
 } from "../types";
 
 export interface EmployeeFilters {
@@ -32,6 +33,12 @@ export async function createEmployee(
 ): Promise<Employee> {
     const response = await api.post<Employee>("/employees/", data);
     return response.data;
+}
+export async function createEmployeeWithUser(
+  data: CreateEmployeeWithUserInput
+): Promise<Employee> {
+  const response = await api.post<Employee>("/employees/create-with-user/", data);
+  return response.data;
 }
 
 export async function updateEmployee(
