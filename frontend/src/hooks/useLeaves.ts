@@ -1,7 +1,41 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getLeaveTypes, createLeaveType, getLeaveBalances, getLeaveRequests, createLeaveRequest, updateLeaveRequest, type LeaveBalanceFilters, type LeaveRequestFilters, } from "@/api/leaves";
-import type { LeaveType, LeaveRequest } from "@/types";
+import {
+    getLeaveTypes,
+    createLeaveType,
+    updateLeaveType,
+    deleteLeaveType,
+    getLeaveBalances,
+    createLeaveBalance,
+    updateLeaveBalance,
+    deleteLeaveBalance,
+    getLeaveRequests,
+    createLeaveRequest,
+    updateLeaveRequest,
+    type LeaveBalanceFilters,
+    type LeaveRequestFilters,
+} from "@/api/leaves";
+import type { LeaveType, LeaveBalance, LeaveRequest } from "@/types";
 import { toast } from "sonner";
+
+function extractErrorMessage(error: any, fallback: string): string {
+    const data = error?.response?.data;
+    if (!data) return fallback;
+    if (typeof data === "string") return data;
+    if (data.detail) return String(data.detail);
+    if (typeof data === "object") {
+        const messages: string[] = [];
+        for (const key of Object.keys(data)) {
+            const val = data[key];
+            if (Array.isArray(val)) {
+                messages.push(`${key !== "non_field_errors" ? key + ": " : ""}${val.join(", ")}`);
+            } else if (typeof val === "string") {
+                messages.push(`${key !== "non_field_errors" ? key + ": " : ""}${val}`);
+            }
+        }
+        if (messages.length > 0) return messages.join(" | ");
+    }
+    return fallback;
+}
 
 export function useLeaveTypes() {
     return useQuery({
@@ -13,13 +47,41 @@ export function useLeaveTypes() {
 export function useCreateLeaveType() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: Omit<LeaveType, "id">) => createLeaveType(data),
+        mutationFn: (data: Omit<LeaveType, "id" | "company"> & { company?: string }) => createLeaveType(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["leave-types"] });
-            toast.success("Type de congé créé.");
+            toast.success("Type de congé créé avec succès.");
         },
         onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Impossible de créer ce type de congé.");
+            toast.error(extractErrorMessage(error, "Impossible de créer ce type de congé."));
+        },
+    });
+}
+
+export function useUpdateLeaveType() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, data }: { id: string; data: Partial<LeaveType> }) => updateLeaveType(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["leave-types"] });
+            toast.success("Type de congé mis à jour.");
+        },
+        onError: (error: any) => {
+            toast.error(extractErrorMessage(error, "Impossible de modifier ce type de congé."));
+        },
+    });
+}
+
+export function useDeleteLeaveType() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => deleteLeaveType(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["leave-types"] });
+            toast.success("Type de congé supprimé.");
+        },
+        onError: (error: any) => {
+            toast.error(extractErrorMessage(error, "Impossible de supprimer ce type de congé."));
         },
     });
 }
@@ -28,6 +90,48 @@ export function useLeaveBalances(filters: LeaveBalanceFilters = {}) {
     return useQuery({
         queryKey: ["leave-balances", filters],
         queryFn: () => getLeaveBalances(filters),
+    });
+}
+
+export function useCreateLeaveBalance() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: Omit<LeaveBalance, "id">) => createLeaveBalance(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["leave-balances"] });
+            toast.success("Solde de congé attribué.");
+        },
+        onError: (error: any) => {
+            toast.error(extractErrorMessage(error, "Impossible d'attribuer ce solde."));
+        },
+    });
+}
+
+export function useUpdateLeaveBalance() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, data }: { id: string; data: Partial<LeaveBalance> }) => updateLeaveBalance(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["leave-balances"] });
+            toast.success("Solde de congé mis à jour.");
+        },
+        onError: (error: any) => {
+            toast.error(extractErrorMessage(error, "Impossible de mettre à jour le solde."));
+        },
+    });
+}
+
+export function useDeleteLeaveBalance() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => deleteLeaveBalance(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["leave-balances"] });
+            toast.success("Solde supprimé.");
+        },
+        onError: (error: any) => {
+            toast.error(extractErrorMessage(error, "Impossible de supprimer le solde."));
+        },
     });
 }
 
@@ -50,7 +154,7 @@ export function useCreateLeaveRequest() {
             toast.success("Demande de congé envoyée.");
         },
         onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Impossible d'envoyer la demande.");
+            toast.error(extractErrorMessage(error, "Impossible d'envoyer la demande."));
         },
     });
 }
@@ -63,10 +167,10 @@ export function useUpdateLeaveRequest() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
             queryClient.invalidateQueries({ queryKey: ["leave-balances"] });
-            toast.success("Demande de congé mise à jour");
+            toast.success("Demande de congé mise à jour avec succès.");
         },
         onError: (error: any) => {
-            toast.error(error?.response?.data?.detail || "Impossible de mettre à jour la demande.");
+            toast.error(extractErrorMessage(error, "Impossible de mettre à jour la demande."));
         },
     });
 }

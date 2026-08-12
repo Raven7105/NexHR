@@ -8,10 +8,22 @@ export async function getLeaveTypes(): Promise<PaginatedResponse<LeaveType>> {
 }
 
 export async function createLeaveType(
-    data: Omit<LeaveType, "id">
+    data: Omit<LeaveType, "id" | "company"> & { company?: string }
 ): Promise<LeaveType> {
     const response = await api.post<LeaveType>("/leave-types/", data);
     return response.data;
+}
+
+export async function updateLeaveType(
+    id: string,
+    data: Partial<LeaveType>
+): Promise<LeaveType> {
+    const response = await api.patch<LeaveType>(`/leave-types/${id}/`, data);
+    return response.data;
+}
+
+export async function deleteLeaveType(id: string): Promise<void> {
+    await api.delete(`/leave-types/${id}/`);
 }
 
 
@@ -27,6 +39,25 @@ export async function getLeaveBalances(
         params: filters,
     });
     return response.data;
+}
+
+export async function createLeaveBalance(
+    data: Omit<LeaveBalance, "id">
+): Promise<LeaveBalance> {
+    const response = await api.post<LeaveBalance>("/leave-balances/", data);
+    return response.data;
+}
+
+export async function updateLeaveBalance(
+    id: string,
+    data: Partial<LeaveBalance>
+): Promise<LeaveBalance> {
+    const response = await api.patch<LeaveBalance>(`/leave-balances/${id}/`, data);
+    return response.data;
+}
+
+export async function deleteLeaveBalance(id: string): Promise<void> {
+    await api.delete(`/leave-balances/${id}/`);
 }
 
 
