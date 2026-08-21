@@ -141,7 +141,7 @@ export default function LeavesPage() {
 
     function canValidateLeave(leave: any) {
         if (!leave || leave.statut !== "en_attente") return false;
-        
+
         // Anti-auto-approbation : On ne peut pas valider sa propre demande
         if (myEmployeeId && leave.employee === myEmployeeId) {
             return false;
@@ -489,33 +489,30 @@ export default function LeavesPage() {
                 <div className="flex items-center gap-2 mb-4 border-b border-border pb-2">
                     <button
                         onClick={() => setViewModeFilter("all")}
-                        className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
-                            viewModeFilter === "all"
-                                ? "bg-primary text-primary-foreground font-semibold"
-                                : "text-muted-foreground hover:bg-muted"
-                        }`}
+                        className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${viewModeFilter === "all"
+                            ? "bg-primary text-primary-foreground font-semibold"
+                            : "text-muted-foreground hover:bg-muted"
+                            }`}
                     >
                         <Users size={14} />
                         Toutes les demandes ({visibleLeaves.length})
                     </button>
                     <button
                         onClick={() => setViewModeFilter("my_leaves")}
-                        className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
-                            viewModeFilter === "my_leaves"
-                                ? "bg-primary text-primary-foreground font-semibold"
-                                : "text-muted-foreground hover:bg-muted"
-                        }`}
+                        className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${viewModeFilter === "my_leaves"
+                            ? "bg-primary text-primary-foreground font-semibold"
+                            : "text-muted-foreground hover:bg-muted"
+                            }`}
                     >
                         <User size={14} />
                         Mes demandes ({visibleLeaves.filter((l) => l.employee === myEmployeeId).length})
                     </button>
                     <button
                         onClick={() => setViewModeFilter("to_validate")}
-                        className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
-                            viewModeFilter === "to_validate"
-                                ? "bg-primary text-primary-foreground font-semibold"
-                                : "text-muted-foreground hover:bg-muted"
-                        }`}
+                        className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${viewModeFilter === "to_validate"
+                            ? "bg-primary text-primary-foreground font-semibold"
+                            : "text-muted-foreground hover:bg-muted"
+                            }`}
                     >
                         <Clock3 size={14} />
                         À valider ({visibleLeaves.filter((l) => canValidateLeave(l)).length})
@@ -536,11 +533,10 @@ export default function LeavesPage() {
                         <button
                             key={tab.id}
                             onClick={() => setStatusFilter(tab.id)}
-                            className={`px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${
-                                statusFilter === tab.id
-                                    ? "bg-card text-foreground shadow-sm font-semibold"
-                                    : "text-muted-foreground hover:text-foreground"
-                            }`}
+                            className={`px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ${statusFilter === tab.id
+                                ? "bg-card text-foreground shadow-sm font-semibold"
+                                : "text-muted-foreground hover:text-foreground"
+                                }`}
                         >
                             {tab.label}
                         </button>
@@ -1184,11 +1180,10 @@ export default function LeavesPage() {
                                     type="button"
                                     onClick={handleConfirmDecision}
                                     disabled={updateLeaveRequest.isPending}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity ${
-                                        decisionModal.action === "approuve"
-                                            ? "bg-green-600 hover:bg-green-700"
-                                            : "bg-red-600 hover:bg-red-700"
-                                    }`}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity ${decisionModal.action === "approuve"
+                                        ? "bg-green-600 hover:bg-green-700"
+                                        : "bg-red-600 hover:bg-red-700"
+                                        }`}
                                 >
                                     Confirmer {decisionModal.action === "approuve" ? "l'approbation" : "le rejet"}
                                 </button>

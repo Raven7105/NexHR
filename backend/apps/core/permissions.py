@@ -15,7 +15,18 @@ class CanValidateLeaveRequest(BasePermission):
         if not request.user.is_authenticated:
             return False
 
-        new_statut = request.data.get("statut")
+        if hasattr(request, "data"):
+            req_data = request.data
+        else:
+            req_data = getattr(request, "POST", {})
+            if not req_data and getattr(request, "body", None):
+                import json
+                try:
+                    req_data = json.loads(request.body.decode("utf-8"))
+                except Exception:
+                    req_data = {}
+
+        new_statut = req_data.get("statut") if isinstance(req_data, dict) else None
         employee_profile = getattr(request.user, "employee_profile", None)
 
         if new_statut == "annule" and employee_profile and obj.employee_id == employee_profile.id:
@@ -113,7 +124,7 @@ class IsEmployeeSelfOrAdminOrManagerOrReadOnly(BasePermission):
 
 class IsAdminOnlyOrReadOnly(BasePermission):
     """
-    Lecture libre pour tous. Écriture réservée à admin_rh et super_admin
+    Lecture libre pour tous. Écriture réservée à admin_rh et superadmin
     uniquement — même un manager n'y a pas accès. Utilisé pour les
     données de paie, les plus sensibles de l'application.
     """
@@ -122,4 +133,4 @@ class IsAdminOnlyOrReadOnly(BasePermission):
         if request.method in SAFE_METHODS:
             return True
 
-        return request.user.role in ["admin_rh", "super_admin"]
+        return request.user.role in ["admin_rh", "superadmin"]

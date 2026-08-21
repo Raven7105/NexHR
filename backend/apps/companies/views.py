@@ -10,6 +10,6 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.role == "super_admin":
+        if user.role == "superadmin":
             return Company.objects.all()
         return Company.objects.filter(id=user.company_id)

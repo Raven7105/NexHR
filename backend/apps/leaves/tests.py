@@ -4,7 +4,11 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIRequestFactory
 
 from apps.companies.models import Company
-from apps.core.permissions import CanValidateLeaveRequest, IsAdminOrOwnManagerOrReadOnly
+from apps.core.permissions import (
+    CanValidateLeaveRequest,
+    IsAdminOrOwnManagerOrReadOnly,
+    IsEmployeeSelfOrAdminOrManagerOrReadOnly,
+)
 from apps.employees.models import Department, Employee
 from .models import LeaveBalance, LeaveRequest, LeaveType
 
@@ -41,7 +45,7 @@ class LeavePermissionTests(TestCase):
         request = factory.post("/leave-requests/", data={})
         request.user = self.user
 
-        permission = IsAdminOrOwnManagerOrReadOnly()
+        permission = IsEmployeeSelfOrAdminOrManagerOrReadOnly()
 
         self.assertTrue(permission.has_permission(request, None))
 
@@ -189,7 +193,7 @@ class LeaveValidationPermissionTests(TestCase):
 
     def test_employee_can_cancel_own_pending_request(self):
         factory = APIRequestFactory()
-        request = factory.patch("/leave-requests/1/", data={"statut": "annule"})
+        request = factory.patch("/leave-requests/1/", data={"statut": "annule"}, format="json")
         request.user = self.employee_user
 
         permission = CanValidateLeaveRequest()

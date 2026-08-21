@@ -4,18 +4,18 @@ import { useAuth } from "../context/AuthContext";
 import nLogo from "../assets/n_logo.svg";
 
 const navItems = [
-    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["super_admin", "admin_rh", "manager", "employe"] },
-    { to: "/employees", label: "Employés", icon: Users, roles: ["super_admin", "admin_rh", "manager"] },
-    { to: "/departments", label: "Départements", icon: Building2, roles: ["super_admin", "admin_rh"] },
-    { to: "/attendance", label: "Présences", icon: Clock, roles: ["super_admin", "admin_rh", "manager", "employe"] },
-    { to: "/calendar", label: "Calendrier", icon: Calendar, roles: ["super_admin", "admin_rh", "manager", "employe"] },
-    { to: "/leaves", label: "Congés", icon: FileText, roles: ["super_admin", "admin_rh", "manager", "employe"] },
-    { to: "/payroll", label: "Paie", icon: Wallet, roles: ["super_admin", "admin_rh"] },
+    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["superadmin", "super_admin", "admin_rh", "manager", "employe"] },
+    { to: "/employees", label: "Employés", icon: Users, roles: ["superadmin", "super_admin", "admin_rh", "manager"] },
+    { to: "/departments", label: "Départements", icon: Building2, roles: ["superadmin", "super_admin", "admin_rh"] },
+    { to: "/attendance", label: "Présences", icon: Clock, roles: ["superadmin", "super_admin", "admin_rh", "manager", "employe"] },
+    { to: "/calendar", label: "Calendrier", icon: Calendar, roles: ["superadmin", "super_admin", "admin_rh", "manager", "employe"] },
+    { to: "/leaves", label: "Congés", icon: FileText, roles: ["superadmin", "super_admin", "admin_rh", "manager", "employe"] },
+    { to: "/payroll", label: "Paie", icon: Wallet, roles: ["superadmin", "super_admin", "admin_rh"] },
 ];
 
 const configItems = [
-    { to: "/organization-chart", label: "Organigramme", icon: Network, roles: ["super_admin", "admin_rh", "manager", "employe"] },
-    { to: "/settings", label: "Paramètres", icon: Settings, roles: ["super_admin", "admin_rh"] },
+    { to: "/organization-chart", label: "Organigramme", icon: Network, roles: ["superadmin", "super_admin", "admin_rh", "manager", "employe"] },
+    { to: "/settings", label: "Paramètres", icon: Settings, roles: ["superadmin", "super_admin", "admin_rh"] },
 ];
 
 interface SidebarProps {
