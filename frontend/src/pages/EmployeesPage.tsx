@@ -15,7 +15,7 @@ export default function EmployeesPage() {
 
     const { data: employeesData, isLoading } = useEmployees({ search: search || undefined, ordering: sortBy, page });
 
-    const canManageEmployees = user?.role === "admin_rh" || user?.role === "superadmin";
+    const canManageEmployees = user?.role === "responsable_rh" || user?.role === "admin_rh" || user?.role === "superadmin";
 
     const employees = employeesData?.results ?? [];
 

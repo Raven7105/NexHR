@@ -42,12 +42,15 @@ class User (AbstractUser):
         max_length=20,
         choices=[
             ("superadmin", "Super Admin"),
-            ("admin_rh", "Admin RH"),
+            ("pdg", "PDG / Direction Générale"),
+            ("responsable_rh", "Responsable RH"),
+            ("admin_rh", "Responsable RH"),
             ("manager", "Manager"),
             ("employe", "Employe"),
         ],
         default="employe",
     )
+    signature = models.TextField(blank=True, default="", help_text="Signature en Base64 ou SVG")
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 

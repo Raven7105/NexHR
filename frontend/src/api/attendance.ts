@@ -1,48 +1,43 @@
 import api from "./axios";
-import type { Holiday, Attendance, PaginatedResponse } from "../types";
-
-
-export async function getHolidays(): Promise<PaginatedResponse<Holiday>> {
-    const response = await api.get<PaginatedResponse<Holiday>>("/holidays/");
-    return response.data;
-}
-
-export async function createHoliday(
-    data: Omit<Holiday, "id">
-): Promise<Holiday> {
-    const response = await api.post<Holiday>("/holidays/", data);
-    return response.data;
-}
-
+import type { Attendance, Holiday, PaginatedResponse } from "../types";
 
 export interface AttendanceFilters {
-    employee?: string;
-    date?: string;
-    date_apres?: string;
-    date_avant?: string;
-    page?: number;
+  employee?: string;
+  date?: string;
+  date_apres?: string;
+  date_avant?: string;
+  statut?: string;
 }
 
-export async function getAttendances(
-    filters: AttendanceFilters = {}
-): Promise<Attendance[]> {
-    const response = await api.get<Attendance[]>("/attendances/", {
-        params: filters,
-    });
-    return response.data;
+export async function getAttendances(filters: AttendanceFilters = {}): Promise<Attendance[]> {
+  const response = await api.get("/attendances/", { params: filters });
+  return Array.isArray(response.data) ? response.data : response.data.results ?? [];
 }
 
-export async function createAttendance(
-    data: Omit<Attendance, "id">
-): Promise<Attendance> {
-    const response = await api.post<Attendance>("/attendances/", data);
-    return response.data;
+export async function createAttendance(data: Partial<Attendance>): Promise<Attendance> {
+  const response = await api.post("/attendances/", data);
+  return response.data;
 }
 
-export async function updateAttendance(
-    id: string,
-    data: Partial<Omit<Attendance, "id">>
-): Promise<Attendance> {
-    const response = await api.patch<Attendance>(`/attendances/${id}/`, data);
-    return response.data;
+export async function updateAttendance(id: string, data: Partial<Attendance>): Promise<Attendance> {
+  const response = await api.patch(`/attendances/${id}/`, data);
+  return response.data;
+}
+
+export async function deleteAttendance(id: string): Promise<void> {
+  await api.delete(`/attendances/${id}/`);
+}
+
+export async function getHolidays(): Promise<PaginatedResponse<Holiday> | Holiday[]> {
+  const response = await api.get("/holidays/");
+  return response.data;
+}
+
+export async function createHoliday(data: Omit<Holiday, "id" | "company">): Promise<Holiday> {
+  const response = await api.post("/holidays/", data);
+  return response.data;
+}
+
+export async function deleteHoliday(id: string): Promise<void> {
+  await api.delete(`/holidays/${id}/`);
 }

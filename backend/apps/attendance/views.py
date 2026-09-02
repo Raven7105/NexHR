@@ -15,6 +15,19 @@ class HolidayViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = HolidaySerializer
     permission_classes = [IsAdminOrManagerOrReadOnly]
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        company = getattr(user, "company", None)
+        if not company and getattr(user, "employee_profile", None):
+            company = getattr(user.employee_profile, "company", None)
+        if not company:
+            from apps.companies.models import Company
+            company = Company.objects.first()
+        if company:
+            serializer.save(company=company)
+        else:
+            serializer.save()
+
 class AttendanceViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):
     queryset = Attendance.objects.all().order_by("date")
     serializer_class = AttendanceSerializer

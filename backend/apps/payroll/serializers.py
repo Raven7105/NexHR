@@ -6,12 +6,14 @@ class PayrollSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = PayrollSetting
         fields = '__all__'
+        read_only_fields = ("company",)
 
 
 class SalaryComponentSerializer(serializers.ModelSerializer):
     class Meta:
         model = SalaryComponent
         fields = '__all__'
+        read_only_fields = ("company",)
 
 
 class PayslipSerializer(serializers.ModelSerializer):

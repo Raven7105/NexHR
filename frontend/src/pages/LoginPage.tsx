@@ -157,7 +157,7 @@ export default function LoginPage() {
 
             <div className="relative z-10 w-full max-w-6xl mx-auto px-8 lg:px-16 py-10 flex items-center justify-between">
                 <p className="text-slate-400 text-sm">
-                    A new <span className="text-blue-400 font-medium">energy</span> for human ressources
+                    Une nouvelle  <span className="text-blue-400 font-medium">énergie</span> pour les ressources humaines
                 </p>
                 <p className="text-slate-500 font-bold tracking-wide text-sm">NEXHR</p>
             </div>

@@ -1,0 +1,11 @@
+[tool.pyrefly]
+search-paths = [
+    "backend",
+    "backend/env/lib/python3.12/site-packages"
+]
+
+[tool.pyright]
+extraPaths = ["backend"]
+executionEnvironments = [
+  { "root": "backend" }
+]

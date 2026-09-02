@@ -1,21 +1,32 @@
 import { NavLink } from "react-router-dom";
 import { LayoutDashboard, Users, Building2, Clock, Calendar, FileText, Wallet, Network, Settings, LogOut, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import NotificationsPopover from "./NotificationsPopover";
 import nLogo from "../assets/n_logo.svg";
 
+const roleLabels: Record<string, string> = {
+    superadmin: "Super Admin",
+    super_admin: "Super Admin",
+    pdg: "PDG / Direction",
+    responsable_rh: "Responsable RH",
+    admin_rh: "Responsable RH",
+    manager: "Manager",
+    employe: "Employé",
+};
+
 const navItems = [
-    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["superadmin", "super_admin", "admin_rh", "manager", "employe"] },
-    { to: "/employees", label: "Employés", icon: Users, roles: ["superadmin", "super_admin", "admin_rh", "manager"] },
-    { to: "/departments", label: "Départements", icon: Building2, roles: ["superadmin", "super_admin", "admin_rh"] },
-    { to: "/attendance", label: "Présences", icon: Clock, roles: ["superadmin", "super_admin", "admin_rh", "manager", "employe"] },
-    { to: "/calendar", label: "Calendrier", icon: Calendar, roles: ["superadmin", "super_admin", "admin_rh", "manager", "employe"] },
-    { to: "/leaves", label: "Congés", icon: FileText, roles: ["superadmin", "super_admin", "admin_rh", "manager", "employe"] },
-    { to: "/payroll", label: "Paie", icon: Wallet, roles: ["superadmin", "super_admin", "admin_rh"] },
+    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["superadmin", "super_admin", "pdg", "responsable_rh", "admin_rh", "manager", "employe"] },
+    { to: "/employees", label: "Employés", icon: Users, roles: ["superadmin", "super_admin", "pdg", "responsable_rh", "admin_rh", "manager"] },
+    { to: "/departments", label: "Départements", icon: Building2, roles: ["superadmin", "super_admin", "pdg", "responsable_rh", "admin_rh"] },
+    { to: "/attendance", label: "Présences", icon: Clock, roles: ["superadmin", "super_admin", "pdg", "responsable_rh", "admin_rh", "manager", "employe"] },
+    { to: "/calendar", label: "Calendrier", icon: Calendar, roles: ["superadmin", "super_admin", "pdg", "responsable_rh", "admin_rh", "manager", "employe"] },
+    { to: "/leaves", label: "Congés", icon: FileText, roles: ["superadmin", "super_admin", "pdg", "responsable_rh", "admin_rh", "manager", "employe"] },
+    { to: "/payroll", label: "Paie", icon: Wallet, roles: ["superadmin", "super_admin", "pdg", "responsable_rh", "admin_rh"] },
 ];
 
 const configItems = [
-    { to: "/organization-chart", label: "Organigramme", icon: Network, roles: ["superadmin", "super_admin", "admin_rh", "manager", "employe"] },
-    { to: "/settings", label: "Paramètres", icon: Settings, roles: ["superadmin", "super_admin", "admin_rh"] },
+    { to: "/organization-chart", label: "Organigramme", icon: Network, roles: ["superadmin", "super_admin", "pdg", "responsable_rh", "admin_rh", "manager", "employe"] },
+    { to: "/settings", label: "Paramètres", icon: Settings, roles: ["superadmin", "super_admin", "pdg", "responsable_rh", "admin_rh"] },
 ];
 
 interface SidebarProps {
@@ -114,7 +125,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-white truncate">{user?.email}</p>
-                        <p className="text-xs text-slate-400">{user?.role}</p>
+                        <p className="text-xs text-slate-400">{user?.role ? (roleLabels[user.role] ?? user.role) : ""}</p>
                     </div>
                     <button
                         onClick={logout}

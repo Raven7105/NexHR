@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Construction } from "lucide-react";
 import { Toaster } from "sonner";
 import LoginPage from "./pages/LoginPage";
 import DashboardLayout from "./components/DashboardLayout";
@@ -11,6 +10,12 @@ import EmployeeFormPage from "./pages/EmployeeFormPage";
 import EmployeeEditPage from "./pages/EmployeeEditPage";
 import DepartmentsPage from "./pages/DepartmentsPage";
 import LeavesPage from "./pages/LeavesPage";
+import AttendancePage from "./pages/AttendancePage";
+import PayrollPage from "./pages/PayrollPage";
+import OrganizationChartPage from "./pages/OrganizationChartPage";
+import CalendarPage from "./pages/CalendarPage";
+import SettingsPage from "./pages/SettingsPage";
+import VerifyLeavePage from "./pages/VerifyLeavePage";
 
 function LoadingScreen() {
   return (
@@ -22,24 +27,6 @@ function LoadingScreen() {
           <p className="text-sm text-muted-foreground">Initialisation de l’espace RH</p>
         </div>
       </div>
-    </div>
-  );
-}
-
-function ComingSoonPage({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="min-h-[60vh] rounded-2xl border border-border bg-card p-8 flex flex-col items-center justify-center text-center shadow-sm">
-      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-        <Construction className="h-7 w-7" />
-      </div>
-      <h2 className="text-xl font-semibold text-foreground">{title}</h2>
-      <p className="mt-2 max-w-md text-sm text-muted-foreground">{description}</p>
     </div>
   );
 }
@@ -61,9 +48,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <BrowserRouter>
-      <Toaster position="top-right" richColors />
+      <Toaster position="top-right" richColors duration={8000} closeButton expand visibleToasts={5} />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/verify/:token" element={<VerifyLeavePage />} />
 
         <Route
           element={
@@ -79,27 +67,12 @@ function App() {
           <Route path="/employees/:id/edit" element={<EmployeeEditPage />} />
           <Route path="/employees/new" element={<EmployeeFormPage />} />
           <Route path="/departments" element={<DepartmentsPage />} />
-          <Route
-            path="/attendance"
-            element={<ComingSoonPage title="Présences" description="Cette vue sera bientôt enrichie avec les statuts, absences et suivi en temps réel." />}
-          />
-          <Route
-            path="/calendar"
-            element={<ComingSoonPage title="Calendrier" description="Un planning clair et partagé sera disponible prochainement pour les équipes." />}
-          />
+          <Route path="/attendance" element={<AttendancePage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/leaves" element={<LeavesPage />} />
-          <Route
-            path="/payroll"
-            element={<ComingSoonPage title="Paie" description="Le suivi des salaires et bulletins sera bientôt accessible directement depuis ici." />}
-          />
-          <Route
-            path="/organization-chart"
-            element={<ComingSoonPage title="Organigramme" description="La vue hiérarchique et les rapports d’équipe seront ajoutés prochainement." />}
-          />
-          <Route
-            path="/settings"
-            element={<ComingSoonPage title="Paramètres" description="Les préférences et réglages du système seront disponibles bientôt." />}
-          />
+          <Route path="/payroll" element={<PayrollPage />} />
+          <Route path="/organization-chart" element={<OrganizationChartPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

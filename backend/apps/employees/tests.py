@@ -19,7 +19,7 @@ class EmployeeCreateSerializerTests(TestCase):
             username="admin@nexhr.com",
             email="admin@nexhr.com",
             password="password123",
-            role="admin_rh",
+            role="responsable_rh",
             company=company,
         )
 

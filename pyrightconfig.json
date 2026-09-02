@@ -1,0 +1,15 @@
+{
+  "venvPath": "backend",
+  "venv": "env",
+  "extraPaths": [
+    "backend"
+  ],
+  "pythonVersion": "3.12",
+  "reportAttributeAccessIssue": false,
+  "reportArgumentType": false,
+  "reportIncompatibleMethodOverride": false,
+  "exclude": [
+    "**/migrations",
+    "backend/env"
+  ]
+}

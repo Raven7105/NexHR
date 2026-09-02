@@ -1,0 +1,9 @@
+[tool.pyrefly]
+search-paths = [
+    ".",
+    "apps",
+    "env/lib/python3.12/site-packages"
+]
+
+[tool.pyright]
+extraPaths = [".", "apps"]

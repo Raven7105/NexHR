@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'apps.leaves',
     'apps.attendance',
     'apps.payroll',
+    'apps.notifications',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'

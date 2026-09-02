@@ -119,7 +119,7 @@ export default function EmployeeFormPage() {
                             >
                                 <option value="employe">Employé</option>
                                 <option value="manager">Manager</option>
-                                <option value="admin_rh">Admin RH</option>
+                                <option value="responsable_rh">Responsable RH</option>
                             </select>
                         </div>
                     </div>

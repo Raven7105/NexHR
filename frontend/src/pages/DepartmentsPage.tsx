@@ -22,7 +22,7 @@ export default function DepartmentsPage() {
     const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
     const [formData, setFormData] = useState({ nom: "", code: "", description: "", manager: "" });
 
-    const canManage = user?.role === "admin_rh" || user?.role === "superadmin";
+    const canManage = user?.role === "responsable_rh" || user?.role === "admin_rh" || user?.role === "superadmin";
     const departments = departmentsData?.results ?? [];
     const employees = employeesData?.results ?? [];
     const departmentsWithManager = departments.filter((dept) => dept.manager).length;

@@ -11,6 +11,13 @@ import {
     getLeaveRequests,
     createLeaveRequest,
     updateLeaveRequest,
+    managerApproveLeaveRequest,
+    managerRejectLeaveRequest,
+    hrApproveLeaveRequest,
+    hrRejectLeaveRequest,
+    ceoApproveLeaveRequest,
+    ceoRejectLeaveRequest,
+    getLeaveHistory,
     type LeaveBalanceFilters,
     type LeaveRequestFilters,
 } from "@/api/leaves";
@@ -50,7 +57,8 @@ export function useCreateLeaveType() {
         mutationFn: (data: Omit<LeaveType, "id" | "company"> & { company?: string }) => createLeaveType(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["leave-types"] });
-            toast.success("Type de congé créé avec succès.");
+            queryClient.invalidateQueries({ queryKey: ["leave-balances"] });
+            toast.success("Type de congé créé avec succès (soldes initialisés pour tous les employés).");
         },
         onError: (error: any) => {
             toast.error(extractErrorMessage(error, "Impossible de créer ce type de congé."));
@@ -64,6 +72,7 @@ export function useUpdateLeaveType() {
         mutationFn: ({ id, data }: { id: string; data: Partial<LeaveType> }) => updateLeaveType(id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["leave-types"] });
+            queryClient.invalidateQueries({ queryKey: ["leave-balances"] });
             toast.success("Type de congé mis à jour.");
         },
         onError: (error: any) => {
@@ -78,6 +87,7 @@ export function useDeleteLeaveType() {
         mutationFn: (id: string) => deleteLeaveType(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["leave-types"] });
+            queryClient.invalidateQueries({ queryKey: ["leave-balances"] });
             toast.success("Type de congé supprimé.");
         },
         onError: (error: any) => {
@@ -90,6 +100,13 @@ export function useLeaveBalances(filters: LeaveBalanceFilters = {}) {
     return useQuery({
         queryKey: ["leave-balances", filters],
         queryFn: () => getLeaveBalances(filters),
+    });
+}
+
+export function useMyLeaveBalances(year?: number) {
+    return useQuery({
+        queryKey: ["leave-balances", "me", year],
+        queryFn: () => import("@/api/leaves").then((mod) => mod.getMyLeaveBalances(year)),
     });
 }
 
@@ -151,7 +168,7 @@ export function useCreateLeaveRequest() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
             queryClient.invalidateQueries({ queryKey: ["leave-balances"] });
-            toast.success("Demande de congé envoyée.");
+            toast.success("Demande de congé envoyée au manager.");
         },
         onError: (error: any) => {
             toast.error(extractErrorMessage(error, "Impossible d'envoyer la demande."));
@@ -167,10 +184,104 @@ export function useUpdateLeaveRequest() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
             queryClient.invalidateQueries({ queryKey: ["leave-balances"] });
-            toast.success("Demande de congé mise à jour avec succès.");
+            toast.success("Demande de congé mise à jour.");
         },
         onError: (error: any) => {
             toast.error(extractErrorMessage(error, "Impossible de mettre à jour la demande."));
         },
+    });
+}
+
+// Hooks pour le Workflow d'Approbation à 3 Niveaux
+export function useManagerApproveLeaveRequest() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, comment }: { id: string; comment: string }) => managerApproveLeaveRequest(id, comment),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
+            toast.success("Demande approuvée par le Manager et transmise aux RH.");
+        },
+        onError: (error: any) => {
+            toast.error(extractErrorMessage(error, "Erreur lors de la validation Manager."));
+        },
+    });
+}
+
+export function useManagerRejectLeaveRequest() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, comment }: { id: string; comment: string }) => managerRejectLeaveRequest(id, comment),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
+            toast.error("Demande de congé rejetée par le Manager.");
+        },
+        onError: (error: any) => {
+            toast.error(extractErrorMessage(error, "Erreur lors du rejet Manager."));
+        },
+    });
+}
+
+export function useHrApproveLeaveRequest() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, comment }: { id: string; comment: string }) => hrApproveLeaveRequest(id, comment),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
+            toast.success("Demande approuvée par les RH et transmise à la Direction Générale (PDG).");
+        },
+        onError: (error: any) => {
+            toast.error(extractErrorMessage(error, "Erreur lors de la validation RH."));
+        },
+    });
+}
+
+export function useHrRejectLeaveRequest() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, comment }: { id: string; comment: string }) => hrRejectLeaveRequest(id, comment),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
+            toast.error("Demande de congé rejetée par le service RH.");
+        },
+        onError: (error: any) => {
+            toast.error(extractErrorMessage(error, "Erreur lors du rejet RH."));
+        },
+    });
+}
+
+export function useCeoApproveLeaveRequest() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, comment }: { id: string; comment: string }) => ceoApproveLeaveRequest(id, comment),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
+            queryClient.invalidateQueries({ queryKey: ["leave-balances"] });
+            toast.success("Congé définitivement accordé par le PDG ! Autorisation PDF générée.");
+        },
+        onError: (error: any) => {
+            toast.error(extractErrorMessage(error, "Erreur lors de l'approbation PDG."));
+        },
+    });
+}
+
+export function useCeoRejectLeaveRequest() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, comment }: { id: string; comment: string }) => ceoRejectLeaveRequest(id, comment),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["leave-requests"] });
+            toast.error("Demande de congé rejetée par le PDG.");
+        },
+        onError: (error: any) => {
+            toast.error(extractErrorMessage(error, "Erreur lors du rejet PDG."));
+        },
+    });
+}
+
+export function useLeaveHistory(id: string) {
+    return useQuery({
+        queryKey: ["leave-history", id],
+        queryFn: () => getLeaveHistory(id),
+        enabled: Boolean(id),
     });
 }

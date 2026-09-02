@@ -9,6 +9,7 @@ env/
 *.sqlite3
 staticfiles/
 media/
+backend/leaves/
 *.log
 local_settings.py
 

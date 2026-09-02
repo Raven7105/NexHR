@@ -17,11 +17,37 @@ class PayrollSettingViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = PayrollSettingSerializer
     permission_classes = [IsAdminOnlyOrReadOnly]
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        company = getattr(user, "company", None)
+        if not company and getattr(user, "employee_profile", None):
+            company = getattr(user.employee_profile, "company", None)
+        if not company:
+            from apps.companies.models import Company
+            company = Company.objects.first()
+        if company:
+            serializer.save(company=company)
+        else:
+            serializer.save()
+
 
 class SalaryComponentViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):
     queryset = SalaryComponent.objects.all()
     serializer_class = SalaryComponentSerializer
     permission_classes = [IsAdminOnlyOrReadOnly]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        company = getattr(user, "company", None)
+        if not company and getattr(user, "employee_profile", None):
+            company = getattr(user.employee_profile, "company", None)
+        if not company:
+            from apps.companies.models import Company
+            company = Company.objects.first()
+        if company:
+            serializer.save(company=company)
+        else:
+            serializer.save()
 
 
 class PayslipViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):

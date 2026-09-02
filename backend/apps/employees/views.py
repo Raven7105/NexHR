@@ -16,6 +16,19 @@ class DepartmentViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = DepartmentSerializer
     permission_classes = [IsAdminOrManagerOrReadOnly]
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        company = getattr(user, "company", None)
+        if not company and getattr(user, "employee_profile", None):
+            company = getattr(user.employee_profile, "company", None)
+        if not company:
+            from apps.companies.models import Company
+            company = Company.objects.first()
+        if company:
+            serializer.save(company=company)
+        else:
+            serializer.save()
+
 
 class EmployeeViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):
     queryset = Employee.objects.filter(is_active=True, deleted_at__isnull=True)
