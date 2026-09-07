@@ -16,6 +16,7 @@ export interface Company {
     heure_fin_journee?: string | null;
     tolerance_retard_minutes?: number;
     delai_prevenance_conge_jours?: number;
+    logo?: string | null;
     actif: boolean;
     date_creation: string;
 }

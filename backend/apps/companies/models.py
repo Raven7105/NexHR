@@ -50,6 +50,12 @@ class Company(models.Model):
     tolerance_retard_minutes = models.PositiveIntegerField(default=15, blank=True)
     delai_prevenance_conge_jours = models.PositiveIntegerField(default=2, blank=True)
 
+    logo = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Logo de l'entreprise (Base64 data URL ou URL d'image)"
+    )
+
     actif = models.BooleanField(default=True)
 
     date_creation = models.DateTimeField(auto_now_add=True)

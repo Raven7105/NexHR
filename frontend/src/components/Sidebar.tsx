@@ -9,14 +9,13 @@ import {
     Wallet,
     Network,
     Settings,
-    LogOut,
     X,
     TrendingUp,
     FileCheck2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useLeaveRequests } from "../hooks/useLeaves";
-import nLogo from "../assets/n_logo.svg";
+import { useCompany, useCompanies } from "../hooks/useCompany";
 
 const roleLabels: Record<string, string> = {
     superadmin: "Super Admin",
@@ -64,8 +63,13 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const isCeo = user?.role === "pdg";
+
+    // Récupération de l'entreprise pour afficher exclusivement son logo
+    const { data: directCompany } = useCompany(user?.company ?? undefined);
+    const { data: companiesData } = useCompanies();
+    const company = directCompany || (Array.isArray(companiesData) ? companiesData[0] : (companiesData as any)?.results?.[0]);
 
     // Pour le badge des signatures en attente du PDG
     const { data: leavesData } = useLeaveRequests();
@@ -94,12 +98,30 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <X size={20} />
                 </button>
 
-                <div className="p-4 flex items-center gap-3">
-                    <img src={nLogo} alt="NexHR" className="w-10 h-10 shrink-0" />
-                    <div className="min-w-0">
-                        <p className="text-white font-bold text-sm leading-tight">NexHR</p>
-                        <p className="text-xs text-slate-400 truncate">
-                            {user?.company_nom ?? "Plateforme RH"}
+                {/* En-tête Sidebar : Logo d'entreprise circulaire occupant le haut */}
+                <div className="py-6 px-4 flex flex-col items-center justify-center border-b border-sidebar-border/30">
+                    <div className="relative group">
+                        <div className="w-28 h-28 rounded-full bg-white dark:bg-slate-900 border-2 border-primary/40 shadow-lg p-2.5 flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:scale-105 group-hover:border-primary">
+                            {company?.logo ? (
+                                <img
+                                    src={company.logo}
+                                    alt={company.nom || user?.company_nom || "Logo Entreprise"}
+                                    className="w-full h-full object-contain rounded-full"
+                                />
+                            ) : (
+                                <div className="flex flex-col items-center justify-center">
+                                    <Building2 size={40} className="text-primary" />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="mt-3 text-center max-w-[210px]">
+                        <p className="text-white font-bold text-sm leading-tight truncate">
+                            {company?.nom || user?.company_nom || "Mon Entreprise"}
+                        </p>
+                        <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                            {user ? roleLabels[user.role] ?? "Espace Entreprise" : "Espace Organisation"}
                         </p>
                     </div>
                 </div>
@@ -163,23 +185,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         </div>
                     </div>
                 </nav>
-
-                <div className="p-4 border-t border-sidebar-border flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-semibold shrink-0">
-                        {user?.email.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">{user?.email}</p>
-                        <p className="text-xs text-slate-400">{user?.role ? (roleLabels[user.role] ?? user.role) : ""}</p>
-                    </div>
-                    <button
-                        onClick={logout}
-                        className="text-slate-400 hover:text-white transition-colors"
-                        title="Se déconnecter"
-                    >
-                        <LogOut size={18} />
-                    </button>
-                </div>
             </aside>
         </>
     );

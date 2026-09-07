@@ -16,7 +16,11 @@ import {
     Lock,
     Globe,
     AlertCircle,
+    Upload,
+    Image as ImageIcon,
+    Trash2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { useCompanies, useUpdateCompany } from "@/hooks/useCompany";
 import { useEmployees } from "@/hooks/useEmployees";
@@ -65,6 +69,7 @@ export default function SettingsPage() {
         heure_fin_journee: "17:30",
         tolerance_retard_minutes: 15,
         delai_prevenance_conge_jours: 2,
+        logo: "",
     });
 
     useEffect(() => {
@@ -89,9 +94,33 @@ export default function SettingsPage() {
                     : "17:30",
                 tolerance_retard_minutes: currentCompany.tolerance_retard_minutes ?? 15,
                 delai_prevenance_conge_jours: currentCompany.delai_prevenance_conge_jours ?? 2,
+                logo: currentCompany.logo ?? "",
             });
         }
     }, [currentCompany]);
+
+    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 2 * 1024 * 1024) {
+            toast.error("L'image est trop volumineuse (maximum 2 Mo).");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const base64 = event.target?.result as string;
+            setFormData((p) => ({ ...p, logo: base64 }));
+            toast.success("Logo sélectionné. Cliquez sur 'Enregistrer' pour sauvegarder.");
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleRemoveLogo = () => {
+        setFormData((p) => ({ ...p, logo: "" }));
+        toast.info("Logo retiré. Cliquez sur 'Enregistrer' pour valider la suppression.");
+    };
 
     function handleSubmit(e?: React.FormEvent) {
         if (e) e.preventDefault();
@@ -211,6 +240,56 @@ export default function SettingsPage() {
                                     <p className="text-xs text-muted-foreground mt-0.5">
                                         Renseignements légaux figurant sur les attestations officielles et bulletins de paie.
                                     </p>
+                                </div>
+
+                                {/* Logo Officiel de l'Entreprise */}
+                                <div className="p-4 rounded-xl border border-border bg-muted/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-16 h-16 rounded-xl border border-border bg-card flex items-center justify-center overflow-hidden shrink-0 shadow-sm p-1.5">
+                                            {formData.logo ? (
+                                                <img
+                                                    src={formData.logo}
+                                                    alt="Logo entreprise"
+                                                    className="w-full h-full object-contain"
+                                                />
+                                            ) : (
+                                                <ImageIcon className="text-muted-foreground/40" size={28} />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-foreground">
+                                                Logo de l'Entreprise
+                                            </p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">
+                                                Affiché en haut du menu latéral (Sidebar) à la place du logo par défaut. (PNG, SVG, JPG, WebP)
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {isAdmin && (
+                                        <div className="flex items-center gap-2">
+                                            <label className="cursor-pointer inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-sm">
+                                                <Upload size={14} />
+                                                <span>{formData.logo ? "Changer le logo" : "Importer un logo"}</span>
+                                                <input
+                                                    type="file"
+                                                    accept="image/png, image/jpeg, image/svg+xml, image/webp"
+                                                    onChange={handleLogoUpload}
+                                                    className="hidden"
+                                                />
+                                            </label>
+                                            {formData.logo && (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleRemoveLogo}
+                                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200 dark:border-rose-900 transition-colors"
+                                                >
+                                                    <Trash2 size={14} />
+                                                    <span>Supprimer</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
