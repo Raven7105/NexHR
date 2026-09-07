@@ -33,6 +33,23 @@ class Company(models.Model):
         help_text="Utilisé uniquement si le format est 'entreprise'. EX:NEX"
     )
 
+    telephone = models.CharField(max_length=50, blank=True, null=True)
+    adresse = models.TextField(blank=True, null=True)
+    ville = models.CharField(max_length=100, blank=True, null=True)
+    pays = models.CharField(max_length=100, default="Bénin", blank=True)
+    numero_ifu = models.CharField(
+        max_length=100, 
+        blank=True, 
+        null=True, 
+        help_text="Numéro IFU / SIRET / Immatriculation fiscale"
+    )
+    devise = models.CharField(max_length=10, default="FCFA", blank=True)
+
+    heure_debut_journee = models.TimeField(default="08:00:00", blank=True, null=True)
+    heure_fin_journee = models.TimeField(default="17:30:00", blank=True, null=True)
+    tolerance_retard_minutes = models.PositiveIntegerField(default=15, blank=True)
+    delai_prevenance_conge_jours = models.PositiveIntegerField(default=2, blank=True)
+
     actif = models.BooleanField(default=True)
 
     date_creation = models.DateTimeField(auto_now_add=True)

@@ -4,23 +4,19 @@ import {
     Check,
     X,
     Calendar,
-    Clock3,
-    BadgeCheck,
-    Sparkles,
-    Ban,
-    MessageSquare,
     Search,
     Tag,
     Edit2,
     Trash2,
     SlidersHorizontal,
-    User,
-    Users,
     FileText,
     Download,
     Eye,
     ShieldCheck,
     FileCheck,
+    Clock,
+    CheckCircle2,
+    CalendarCheck,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -74,13 +70,19 @@ const STATUT_COLORS: Record<string, string> = {
     annule: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300",
 };
 
+import CeoApprovalsPage from "./CeoApprovalsPage";
+
 export default function LeavesPage() {
     const { user } = useAuth();
-    const isEmployee = user?.role === "employe";
     const isManager = user?.role === "manager";
     const isHR = user?.role === "responsable_rh" || user?.role === "admin_rh";
     const isCEO = user?.role === "pdg";
     const isSuperAdmin = user?.role === "superadmin";
+
+    // Si le PDG consulte les congés, afficher le Bureau d'Arbitrage et de Signatures dédié
+    if (isCEO) {
+        return <CeoApprovalsPage />;
+    }
 
     const myEmployeeId = user?.employee_profile?.id;
 
@@ -164,11 +166,44 @@ export default function LeavesPage() {
 
     const leaveTypes = leaveTypesData?.results ?? [];
     const allRequests = leavesData?.results ?? [];
-    const balances = (myBalancesList && Array.isArray(myBalancesList) && myBalancesList.length > 0)
-        ? myBalancesList
-        : (balancesData?.results ?? []);
     const allBalances = allBalancesData?.results ?? [];
     const employees = employeesData?.results ?? [];
+
+    const currentYear = new Date().getFullYear();
+
+    // Récupération stricte des soldes personnels de l'utilisateur connecté (sans fuite des soldes des tiers)
+    const rawPersonalBalances: LeaveBalance[] = (myBalancesList && Array.isArray(myBalancesList) && myBalancesList.length > 0)
+        ? myBalancesList
+        : (myEmployeeId && balancesData?.results
+            ? balancesData.results.filter((b) => b.employee === myEmployeeId)
+            : []);
+
+    // Déduplication stricte par type de congé et filtrage par année courante pour éliminer tout doublon visuel
+    const personalBalances = rawPersonalBalances
+        .filter((b) => !b.annee || Number(b.annee) === currentYear)
+        .reduce<LeaveBalance[]>((acc, current) => {
+            if (!acc.some((item) => item.leave_type === current.leave_type)) {
+                acc.push(current);
+            }
+            return acc;
+        }, []);
+
+    // KPI d'administration pour Admin, RH et Manager
+    const todayStr = new Date().toISOString().split("T")[0];
+    const pendingManagerCount = allRequests.filter((r) => r.statut === "PENDING_MANAGER" || r.statut === "en_attente").length;
+    const pendingHrCount = allRequests.filter((r) => r.statut === "PENDING_HR").length;
+    const pendingCeoCount = allRequests.filter((r) => r.statut === "PENDING_CEO").length;
+    const totalPending = pendingManagerCount + pendingHrCount + pendingCeoCount;
+
+    const currentlyOnLeaveCount = allRequests.filter(
+        (r) => (r.statut === "APPROVED" || r.statut === "approuve") &&
+               r.date_debut <= todayStr &&
+               r.date_fin >= todayStr
+    ).length;
+
+    const approvedTotalCount = allRequests.filter(
+        (r) => r.statut === "APPROVED" || r.statut === "approuve"
+    ).length;
 
     // Handlers pour Types de Congé
     const handleSaveType = (e: React.FormEvent) => {
@@ -383,47 +418,153 @@ export default function LeavesPage() {
                 </div>
             </div>
 
-            {/* KPI Dynamiques des soldes personnels de l'utilisateur connecté */}
-            {balances.length > 0 && user?.role !== "pdg" && (
+            {/* KPI d'Administration des Congés pour Admin, RH et Manager */}
+            {(isHR || isSuperAdmin || isManager) && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {balances.map((b) => {
-                        const leaveTypeNom = b.leave_type_nom || leaveTypes.find((lt) => lt.id === b.leave_type)?.nom || "Type de congé";
-                        const leaveTypeCouleur = b.leave_type_couleur || leaveTypes.find((lt) => lt.id === b.leave_type)?.couleur || "#3B82F6";
-                        const total = parseFloat(b.jours_alloues);
-                        const used = parseFloat(b.jours_utilises);
-                        const remaining = b.jours_restants !== undefined ? parseFloat(String(b.jours_restants)) : Math.max(0, total - used);
-                        const percent = total > 0 ? (used / total) * 100 : 0;
-
-                        return (
-                            <div key={b.id} className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
-                                <div
-                                    className="absolute top-0 left-0 right-0 h-1.5"
-                                    style={{ backgroundColor: leaveTypeCouleur }}
-                                />
-                                <div className="flex items-center justify-between">
-                                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
-                                        {leaveTypeNom}
-                                    </p>
-                                    <span className="text-[10px] font-mono text-muted-foreground font-semibold px-2 py-0.5 bg-muted rounded-md">
-                                        {used} utilisé{used > 1 ? "s" : ""}
-                                    </span>
-                                </div>
-                                <div className="flex items-baseline gap-2 mt-3">
-                                    <span className="text-2xl font-extrabold text-foreground">{remaining}</span>
-                                    <span className="text-xs text-muted-foreground font-medium">/ {total} j restants</span>
-                                </div>
-                                <div className="w-full bg-muted rounded-full h-2 mt-3 overflow-hidden">
-                                    <div
-                                        className="h-full rounded-full transition-all duration-300"
-                                        style={{
-                                            width: `${Math.min(100, percent)}%`,
-                                            backgroundColor: leaveTypeCouleur,
-                                        }}
-                                    />
-                                </div>
+                    {/* 1. Dossiers en attente */}
+                    <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
+                        <div className="absolute top-0 left-0 right-0 h-1.5 bg-amber-500" />
+                        <div className="flex items-center justify-between">
+                            <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
+                                En attente d'approbation
+                            </p>
+                            <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-950/60 flex items-center justify-center">
+                                <Clock size={15} className="text-amber-600 dark:text-amber-400" />
                             </div>
-                        );
-                    })}
+                        </div>
+                        <div className="flex items-baseline gap-2 mt-2">
+                            <span className="text-2xl font-extrabold text-foreground">{totalPending}</span>
+                            <span className="text-xs text-muted-foreground font-medium">dossier{totalPending > 1 ? "s" : ""}</span>
+                        </div>
+                        <div className="mt-2 text-[11px] text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                            {isManager && (
+                                <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 font-semibold">
+                                    {pendingManagerCount} étape Manager
+                                </span>
+                            )}
+                            {isHR && (
+                                <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 font-semibold">
+                                    {pendingHrCount} étape RH
+                                </span>
+                            )}
+                            {isSuperAdmin && (
+                                <span className="text-muted-foreground">
+                                    MGR: {pendingManagerCount} • RH: {pendingHrCount} • PDG: {pendingCeoCount}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* 2. Collaborateurs en congé aujourd'hui */}
+                    <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
+                        <div className="absolute top-0 left-0 right-0 h-1.5 bg-blue-500" />
+                        <div className="flex items-center justify-between">
+                            <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
+                                En congé aujourd'hui
+                            </p>
+                            <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center">
+                                <CalendarCheck size={15} className="text-blue-600 dark:text-blue-400" />
+                            </div>
+                        </div>
+                        <div className="flex items-baseline gap-2 mt-2">
+                            <span className="text-2xl font-extrabold text-foreground">{currentlyOnLeaveCount}</span>
+                            <span className="text-xs text-muted-foreground font-medium">collaborateur{currentlyOnLeaveCount > 1 ? "s" : ""}</span>
+                        </div>
+                        <p className="mt-2 text-[11px] text-muted-foreground">
+                            {currentlyOnLeaveCount === 0 ? "Aucune absence enregistrée aujourd'hui" : "Absences validées en cours"}
+                        </p>
+                    </div>
+
+                    {/* 3. Total demandes validées */}
+                    <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
+                        <div className="absolute top-0 left-0 right-0 h-1.5 bg-emerald-500" />
+                        <div className="flex items-center justify-between">
+                            <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
+                                Congés Accordés
+                            </p>
+                            <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center">
+                                <CheckCircle2 size={15} className="text-emerald-600 dark:text-emerald-400" />
+                            </div>
+                        </div>
+                        <div className="flex items-baseline gap-2 mt-2">
+                            <span className="text-2xl font-extrabold text-foreground">{approvedTotalCount}</span>
+                            <span className="text-xs text-muted-foreground font-medium">validé{approvedTotalCount > 1 ? "s" : ""}</span>
+                        </div>
+                        <p className="mt-2 text-[11px] text-muted-foreground">
+                            Dossiers avec visas et attestation PDF
+                        </p>
+                    </div>
+
+                    {/* 4. Types de congés configurés */}
+                    <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
+                        <div className="absolute top-0 left-0 right-0 h-1.5 bg-purple-500" />
+                        <div className="flex items-center justify-between">
+                            <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
+                                Types de Congés
+                            </p>
+                            <div className="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-950/60 flex items-center justify-center">
+                                <Tag size={15} className="text-purple-600 dark:text-purple-400" />
+                            </div>
+                        </div>
+                        <div className="flex items-baseline gap-2 mt-2">
+                            <span className="text-2xl font-extrabold text-foreground">{leaveTypes.length}</span>
+                            <span className="text-xs text-muted-foreground font-medium">catégorie{leaveTypes.length > 1 ? "s" : ""}</span>
+                        </div>
+                        <p className="mt-2 text-[11px] text-muted-foreground">
+                            Règles d'allocation paramétrées
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {/* KPI Dynamiques des soldes personnels (Affichés pour les employés ou en sous-section dédiée pour les managers/RH) */}
+            {personalBalances.length > 0 && user?.role !== "pdg" && (
+                <div className="space-y-2">
+                    {(isHR || isSuperAdmin || isManager) && (
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Mes Soldes Personnels ({currentYear})
+                        </p>
+                    )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {personalBalances.map((b) => {
+                            const leaveTypeNom = b.leave_type_nom || leaveTypes.find((lt) => lt.id === b.leave_type)?.nom || "Type de congé";
+                            const leaveTypeCouleur = b.leave_type_couleur || leaveTypes.find((lt) => lt.id === b.leave_type)?.couleur || "#3B82F6";
+                            const total = parseFloat(b.jours_alloues);
+                            const used = parseFloat(b.jours_utilises);
+                            const remaining = b.jours_restants !== undefined ? parseFloat(String(b.jours_restants)) : Math.max(0, total - used);
+                            const percent = total > 0 ? (used / total) * 100 : 0;
+
+                            return (
+                                <div key={b.id} className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
+                                    <div
+                                        className="absolute top-0 left-0 right-0 h-1.5"
+                                        style={{ backgroundColor: leaveTypeCouleur }}
+                                    />
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
+                                            {leaveTypeNom}
+                                        </p>
+                                        <span className="text-[10px] font-mono text-muted-foreground font-semibold px-2 py-0.5 bg-muted rounded-md">
+                                            {used} utilisé{used > 1 ? "s" : ""}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-baseline gap-2 mt-3">
+                                        <span className="text-2xl font-extrabold text-foreground">{remaining}</span>
+                                        <span className="text-xs text-muted-foreground font-medium">/ {total} j restants</span>
+                                    </div>
+                                    <div className="w-full bg-muted rounded-full h-2 mt-3 overflow-hidden">
+                                        <div
+                                            className="h-full rounded-full transition-all duration-300"
+                                            style={{
+                                                width: `${Math.min(100, percent)}%`,
+                                                backgroundColor: leaveTypeCouleur,
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             )}
 

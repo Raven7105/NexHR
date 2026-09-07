@@ -1,21 +1,21 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
-import LoginPage from "./pages/LoginPage";
+import LoginPage from "./pages/auth/LoginPage";
 import DashboardLayout from "./components/DashboardLayout";
 import { useAuth } from "./context/AuthContext";
-import DashboardPage from "./pages/DashboardPage";
-import EmployeesPage from "./pages/EmployeesPage";
-import EmployeeDetailPage from "./pages/EmployeeDetailPage";
-import EmployeeFormPage from "./pages/EmployeeFormPage";
-import EmployeeEditPage from "./pages/EmployeeEditPage";
-import DepartmentsPage from "./pages/DepartmentsPage";
-import LeavesPage from "./pages/LeavesPage";
-import AttendancePage from "./pages/AttendancePage";
-import PayrollPage from "./pages/PayrollPage";
-import OrganizationChartPage from "./pages/OrganizationChartPage";
-import CalendarPage from "./pages/CalendarPage";
-import SettingsPage from "./pages/SettingsPage";
-import VerifyLeavePage from "./pages/VerifyLeavePage";
+import DashboardPage from "./pages/dashboard/DashboardPage";
+import EmployeesPage from "./pages/employees/EmployeesPage";
+import EmployeeDetailPage from "./pages/employees/EmployeeDetailPage";
+import EmployeeFormPage from "./pages/employees/EmployeeFormPage";
+import EmployeeEditPage from "./pages/employees/EmployeeEditPage";
+import DepartmentsPage from "./pages/departments/DepartmentsPage";
+import LeavesPage from "./pages/leaves/LeavesPage";
+import AttendancePage from "./pages/attendance/AttendancePage";
+import PayrollPage from "./pages/payroll/PayrollPage";
+import OrganizationChartPage from "./pages/organization-chart/OrganizationChartPage";
+import CalendarPage from "./pages/attendance/CalendarPage";
+import SettingsPage from "./pages/settings/SettingsPage";
+import VerifyLeavePage from "./pages/leaves/VerifyLeavePage";
 
 function LoadingScreen() {
   return (

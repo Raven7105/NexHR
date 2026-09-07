@@ -1,4 +1,3 @@
-import React from "react";
 import { CheckCircle2, Clock, XCircle, AlertCircle, FileText } from "lucide-react";
 import type { LeaveRequest } from "@/types";
 
@@ -42,7 +41,7 @@ export default function LeaveApprovalTimeline({ request }: TimelineProps) {
     const ceoPending = request.statut === "PENDING_CEO";
 
     // Détermination dynamique des étapes selon le rôle du demandeur
-    const applicantRole = request.employee_detail?.role || "employe";
+    const applicantRole = request.applicant_role || "employe";
 
     const steps = [
         {
@@ -60,7 +59,7 @@ export default function LeaveApprovalTimeline({ request }: TimelineProps) {
             subtitle: request.employee_detail?.manager_nom || "Manager hiérarchique",
             date: formatDate(request.manager_approved_at),
             status: managerDone ? "completed" : managerRejected ? "rejected" : managerPending ? "pending" : "waiting",
-            comment: request.manager_comment,
+            comment: request.manager_comment || "",
         });
     }
 
@@ -71,7 +70,7 @@ export default function LeaveApprovalTimeline({ request }: TimelineProps) {
             subtitle: "Service Ressources Humaines",
             date: formatDate(request.hr_approved_at),
             status: hrDone ? "completed" : hrRejected ? "rejected" : hrPending ? "pending" : "waiting",
-            comment: request.hr_comment,
+            comment: request.hr_comment || "",
         });
     }
 
@@ -81,7 +80,7 @@ export default function LeaveApprovalTimeline({ request }: TimelineProps) {
         subtitle: "Direction Générale",
         date: formatDate(request.ceo_approved_at),
         status: ceoDone ? "completed" : ceoRejected ? "rejected" : ceoPending ? "pending" : "waiting",
-        comment: request.ceo_comment,
+        comment: request.ceo_comment || "",
     });
 
     return (

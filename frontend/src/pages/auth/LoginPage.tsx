@@ -1,7 +1,7 @@
 import { useState, type FormEvent, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import nLogo from "../assets/n_logo.svg";
+import nLogo from "@/assets/n_logo.svg";
 import { toast } from "sonner";
 import { Mail, Eye, EyeOff, Lock } from "lucide-react";
 

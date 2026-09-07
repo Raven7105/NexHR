@@ -6,6 +6,16 @@ export interface Company {
     plan_abonnement: "essai" | "starter" | "pro" | "gratuit";
     format_matricule: "departement" | "entreprise";
     prefixe_matricule: string;
+    telephone?: string | null;
+    adresse?: string | null;
+    ville?: string | null;
+    pays?: string;
+    numero_ifu?: string | null;
+    devise?: string;
+    heure_debut_journee?: string | null;
+    heure_fin_journee?: string | null;
+    tolerance_retard_minutes?: number;
+    delai_prevenance_conge_jours?: number;
     actif: boolean;
     date_creation: string;
 }
@@ -51,7 +61,8 @@ export interface Employee {
     phone_number: string;
     date_fin_contrat: string | null;
     statut: "actif" | "inactif" | "suspendu" | "en_conge";
-    user: string;
+    user: string | { id: string; email: string; first_name?: string; last_name?: string; role?: string };
+    user_email?: string;
     company: string;
     department: string | null;
     manager: string | null;
@@ -134,6 +145,14 @@ export interface LeaveRequest {
     employee: string;
     leave_type: string;
 
+    applicant_role?: string;
+    notes_manager?: string;
+    notes_hr?: string;
+    notes_ceo?: string;
+    date_validation_manager?: string | null;
+    date_validation_hr?: string | null;
+    date_validation_ceo?: string | null;
+
     manager_user?: string | null;
     manager_status?: string;
     manager_comment?: string;
@@ -156,7 +175,7 @@ export interface LeaveRequest {
     validateur?: string | null;
     date_validation?: string | null;
     commentaire_validateur?: string;
-    date_creation: string;
+    date_creation?: string;
     date_modification?: string;
 
     leave_type_nom?: string;
