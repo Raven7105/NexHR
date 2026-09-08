@@ -102,6 +102,39 @@ def _record_employee_changes(instance, old_state, reason, user):
         )
 
 
+def _initialize_employee_career(employee, user):
+    created_by = user if (user and user.is_authenticated) else None
+    hire_date = employee.date_embauche or timezone.now().date()
+    contract_label = employee.get_type_contrat_display() if hasattr(employee, "get_type_contrat_display") else (employee.type_contrat or "").upper()
+
+    # 1. Événement initial d'embauche
+    EmployeeHistory.objects.create(
+        company=employee.company,
+        employee=employee,
+        field="embauche",
+        old_value="",
+        new_value=employee.poste,
+        contract_type=employee.type_contrat,
+        department=employee.department,
+        change_date=hire_date,
+        reason=f"Entrée en fonction en contrat {contract_label} au poste de {employee.poste}",
+        created_by=created_by,
+    )
+
+    # 2. Jalon salarial initial d'embauche
+    if employee.salaire_de_base and Decimal(str(employee.salaire_de_base)) > 0:
+        EmployeeHistory.objects.create(
+            company=employee.company,
+            employee=employee,
+            field="salaire",
+            old_value="0",
+            new_value=str(employee.salaire_de_base),
+            change_date=hire_date,
+            reason="Fixation du salaire initial d'embauche",
+            created_by=created_by,
+        )
+
+
 class DepartmentViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
@@ -139,18 +172,7 @@ class EmployeeViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         employee = serializer.save()
-        EmployeeHistory.objects.create(
-            company=employee.company,
-            employee=employee,
-            field="embauche",
-            old_value="",
-            new_value=employee.poste,
-            contract_type=employee.type_contrat,
-            department=employee.department,
-            change_date=employee.date_embauche or timezone.now().date(),
-            reason="Embauche initiale",
-            created_by=self.request.user if self.request.user.is_authenticated else None,
-        )
+        _initialize_employee_career(employee, self.request.user)
 
     @action(detail=False, methods=["post"], url_path="create-with-user")
     def create_with_user(self, request):
@@ -158,21 +180,11 @@ class EmployeeViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         employee = serializer.save()
 
-        # Enregistrement automatique de l'événement initial d'embauche
-        EmployeeHistory.objects.create(
-            company=employee.company,
-            employee=employee,
-            field="embauche",
-            old_value="",
-            new_value=employee.poste,
-            contract_type=employee.type_contrat,
-            department=employee.department,
-            change_date=employee.date_embauche or timezone.now().date(),
-            reason="Embauche initiale",
-            created_by=request.user if request.user.is_authenticated else None,
-        )
+        # Initialisation complète du parcours professionnel (embauche + salaire initial)
+        _initialize_employee_career(employee, request.user)
 
         return Response(EmployeeSerializer(employee).data, status=status.HTTP_201_CREATED)
+
 
     @action(detail=True, methods=["patch"], url_path="profile")
     def update_profile(self, request, pk=None):

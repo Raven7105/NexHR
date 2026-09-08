@@ -85,13 +85,17 @@ class EmployeeCareerHistoryTests(TestCase):
         self.assertEqual(create_resp.status_code, 201)
         employee_id = create_resp.data["id"]
 
-        # Vérification de l'événement initial d'embauche
+        # Vérification des événements initiaux d'embauche et de salaire de départ
         initial_history = EmployeeHistory.objects.filter(employee_id=employee_id)
-        self.assertEqual(initial_history.count(), 1)
-        event_embauche = initial_history.first()
-        self.assertEqual(event_embauche.field, "embauche")
+        self.assertEqual(initial_history.count(), 2)  # embauche + salaire initial
+        event_embauche = initial_history.filter(field="embauche").first()
+        self.assertIsNotNone(event_embauche)
         self.assertEqual(event_embauche.new_value, "Développeur Junior")
         self.assertEqual(event_embauche.department, self.dept_it)
+
+        event_salaire_init = initial_history.filter(field="salaire").first()
+        self.assertIsNotNone(event_salaire_init)
+        self.assertEqual(event_salaire_init.new_value, "500000.00")
 
         # 2. Mise à jour de salaire et de poste
         patch_resp = client.patch(
@@ -107,7 +111,7 @@ class EmployeeCareerHistoryTests(TestCase):
 
         # Vérifier que les événements ont été créés
         events = EmployeeHistory.objects.filter(employee_id=employee_id).order_by("date_creation")
-        self.assertEqual(events.count(), 3)  # embauche + promotion + salaire
+        self.assertEqual(events.count(), 4)  # embauche + salaire initial + promotion + augmentation salaire
 
         promot_event = events.filter(field="promotion").first()
         self.assertIsNotNone(promot_event)
@@ -115,10 +119,15 @@ class EmployeeCareerHistoryTests(TestCase):
         self.assertEqual(promot_event.new_value, "Développeur Senior")
         self.assertEqual(promot_event.reason, "Promotion annuelle")
 
-        salary_event = events.filter(field="salaire").first()
-        self.assertIsNotNone(salary_event)
-        self.assertEqual(salary_event.old_value, "500000.00")
-        self.assertEqual(salary_event.new_value, "800000.00")
+        salary_events = events.filter(field="salaire")
+        self.assertEqual(salary_events.count(), 2)
+        initial_salary_event = salary_events.first()
+        self.assertEqual(initial_salary_event.old_value, "0")
+        self.assertEqual(initial_salary_event.new_value, "500000.00")
+
+        updated_salary_event = salary_events.last()
+        self.assertEqual(updated_salary_event.old_value, "500000.00")
+        self.assertEqual(updated_salary_event.new_value, "800000.00")
 
         # 3. Transfert de département
         transfer_resp = client.patch(
