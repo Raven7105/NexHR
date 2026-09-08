@@ -16,6 +16,8 @@ import {
     TrendingDown,
     Minus,
     BarChart3,
+    Flag,
+    Clock,
 } from "lucide-react";
 import { useEmployeeHistory, useDeleteEmployeeHistory } from "@/hooks/useEmployeeHistory";
 import CareerEventForm from "./CareerEventForm";
@@ -106,6 +108,44 @@ function formatFrenchDate(dateStr: string) {
     }
 }
 
+function calculateRetirementInfo(dateNaissance: string | null | undefined, dateEmbauche: string | null | undefined) {
+    const RETIREMENT_AGE = 60;
+    const now = new Date();
+    let retirementDate: Date;
+    let hasExactBirthDate = false;
+
+    if (dateNaissance) {
+        try {
+            const [bYear, bMonth, bDay] = dateNaissance.split("-").map(Number);
+            retirementDate = new Date(bYear + RETIREMENT_AGE, (bMonth || 1) - 1, bDay || 1);
+            hasExactBirthDate = true;
+        } catch {
+            const hireYear = dateEmbauche ? new Date(dateEmbauche).getFullYear() : now.getFullYear();
+            retirementDate = new Date(hireYear + 30, 11, 31);
+        }
+    } else {
+        const hireYear = dateEmbauche ? new Date(dateEmbauche).getFullYear() : now.getFullYear();
+        retirementDate = new Date(hireYear + 30, 11, 31);
+    }
+
+    const diffMs = retirementDate.getTime() - now.getTime();
+    const isRetired = diffMs <= 0;
+    const remainingYears = Math.max(0, Math.floor(diffMs / (365.25 * 24 * 3600 * 1000)));
+
+    return {
+        retirementDate,
+        formattedDate: retirementDate.toLocaleDateString("fr-FR", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        }),
+        year: retirementDate.getFullYear(),
+        isRetired,
+        remainingYears,
+        hasExactBirthDate,
+    };
+}
+
 function calculateSalaryTrend(oldValStr: string, newValStr: string) {
     const oldVal = parseFloat(oldValStr) || 0;
     const newVal = parseFloat(newValStr) || 0;
@@ -148,19 +188,51 @@ export default function CareerHistory({ employee, canManage = false }: CareerHis
     const { data: historyData, isLoading } = useEmployeeHistory({ employee: employee.id });
     const deleteHistory = useDeleteEmployeeHistory();
 
+    const retirementInfo = useMemo(() => {
+        return calculateRetirementInfo(employee.date_naissance, employee.date_embauche);
+    }, [employee.date_naissance, employee.date_embauche]);
+
+    const hasEmbaucheInHistory = useMemo(() => {
+        return (historyData?.results ?? []).some((e) => e.field === "embauche");
+    }, [historyData?.results]);
+
     const events = useMemo(() => {
-        const list = historyData?.results ?? [];
-        return [...list].sort((a, b) => {
+        const list = [...(historyData?.results ?? [])];
+
+        // S'assurer que le jalon d'embauche initial est TOUJOURS présent à la date d'embauche de l'employé !
+        if (!hasEmbaucheInHistory && employee.date_embauche) {
+            list.push({
+                id: "synthetic-embauche",
+                company: employee.company,
+                employee: employee.id,
+                field: "embauche",
+                old_value: "",
+                new_value: employee.poste,
+                contract_type: employee.type_contrat,
+                department: employee.department,
+                department_nom: employee.department_nom,
+                change_date: employee.date_embauche,
+                reason: "Entrée en fonction dans l'entreprise",
+                created_by: null,
+                created_by_nom: "Fiche d'embauche",
+                date_creation: employee.date_embauche,
+            });
+        }
+
+        return list.sort((a, b) => {
             const timeA = new Date(a.change_date).getTime();
             const timeB = new Date(b.change_date).getTime();
             if (timeA === timeB) {
+                if (a.field === "embauche") return sortAsc ? -1 : 1;
+                if (b.field === "embauche") return sortAsc ? 1 : -1;
                 return new Date(a.date_creation).getTime() - new Date(b.date_creation).getTime();
             }
             return sortAsc ? timeA - timeB : timeB - timeA;
         });
-    }, [historyData?.results, sortAsc]);
+    }, [historyData?.results, hasEmbaucheInHistory, employee, sortAsc]);
 
     function handleDelete(event: EmployeeHistory) {
+        if (event.id === "synthetic-embauche") return;
         if (confirm(`Supprimer l'événement "${EVENT_CONFIGS[event.field]?.label || event.field}" du ${event.change_date} ?`)) {
             deleteHistory.mutate(event.id);
         }
@@ -237,6 +309,86 @@ export default function CareerHistory({ employee, canManage = false }: CareerHis
                     </div>
                 </div>
 
+                {/* Roadmap : Cycle complet de vie professionnelle (De l'Embauche à la Retraite ou Fin de contrat) */}
+                <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-purple-500/10 border border-blue-500/20 rounded-2xl p-4 mb-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        {/* Étape 1 : Embauche */}
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+                                <Sparkles size={19} />
+                            </div>
+                            <div>
+                                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                                    1. Date d'embauche
+                                </span>
+                                <p className="text-sm font-bold text-foreground">
+                                    {formatFrenchDate(employee.date_embauche)}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    Contrat {employee.type_contrat?.toUpperCase()} • {employee.poste}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Flèche intermédiaire */}
+                        <div className="hidden md:flex items-center text-muted-foreground/40">
+                            <ArrowRight size={18} />
+                        </div>
+
+                        {/* Étape 2 : Situation Actuelle */}
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/30">
+                                <Clock size={19} />
+                            </div>
+                            <div>
+                                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                                    2. Étape actuelle
+                                </span>
+                                <p className="text-sm font-bold text-foreground">
+                                    {Number(employee.salaire_de_base).toLocaleString()} FCFA
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    {employee.department_nom || "Général"} • Statut {employee.statut}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Flèche intermédiaire */}
+                        <div className="hidden md:flex items-center text-muted-foreground/40">
+                            <ArrowRight size={18} />
+                        </div>
+
+                        {/* Étape 3 : Horizon Retraite ou Fin de contrat */}
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 border border-purple-500/30">
+                                <Flag size={19} />
+                            </div>
+                            <div>
+                                <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
+                                    {employee.statut === "inactif"
+                                        ? "3. Fin de contrat / Départ"
+                                        : employee.type_contrat === "cdd" && employee.date_fin_contrat
+                                        ? "3. Échéance du CDD"
+                                        : "3. Horizon Retraite (60 ans)"}
+                                </span>
+                                <p className="text-sm font-bold text-foreground">
+                                    {employee.statut === "inactif"
+                                        ? (employee.date_fin_contrat ? formatFrenchDate(employee.date_fin_contrat) : "Contrat clôturé")
+                                        : employee.type_contrat === "cdd" && employee.date_fin_contrat
+                                        ? formatFrenchDate(employee.date_fin_contrat)
+                                        : `${retirementInfo.year} (~${retirementInfo.remainingYears} ans)`}
+                                </p>
+                                <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                                    {employee.statut === "inactif"
+                                        ? "Employé inactif"
+                                        : retirementInfo.isRetired
+                                        ? "Âge légal de départ atteint"
+                                        : `Cap fixé au ${retirementInfo.formattedDate}`}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
             {/* État de chargement */}
             {isLoading && (
@@ -380,6 +532,42 @@ export default function CareerHistory({ employee, canManage = false }: CareerHis
                             </div>
                         );
                     })}
+
+                    {/* Jalon d'arrivée prévisionnel : Retraite (60 ans) ou Fin de contrat */}
+                    {sortAsc && (
+                        <div className="relative group">
+                            <div className="absolute -left-7 top-1 w-6 h-6 rounded-full flex items-center justify-center shadow-xs z-10 bg-purple-600 text-white ring-4 ring-purple-100 dark:ring-purple-950/40">
+                                <Flag size={13} />
+                            </div>
+                            <div className="bg-purple-500/5 hover:bg-purple-500/10 border border-purple-500/30 rounded-xl p-4 transition-colors">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
+                                    <div className="flex items-center gap-2">
+                                        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                            {employee.statut === "inactif"
+                                                ? "Départ / Fin de fonction"
+                                                : employee.type_contrat === "cdd" && employee.date_fin_contrat
+                                                ? "Échéance de contrat"
+                                                : "🏁 Horizon Retraite (60 ans)"}
+                                        </span>
+                                    </div>
+                                    <span className="text-xs font-semibold text-purple-700 dark:text-purple-300">
+                                        {employee.statut === "inactif" && employee.date_fin_contrat
+                                            ? formatFrenchDate(employee.date_fin_contrat)
+                                            : employee.type_contrat === "cdd" && employee.date_fin_contrat
+                                            ? formatFrenchDate(employee.date_fin_contrat)
+                                            : retirementInfo.formattedDate}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    {employee.statut === "inactif"
+                                        ? "L'employé est actuellement inactif dans l'organisation."
+                                        : employee.type_contrat === "cdd" && employee.date_fin_contrat
+                                        ? "Date de fin d'échéance pour le contrat à durée déterminée."
+                                        : `Départ légal à la retraite estimé à l'âge de 60 ans (${retirementInfo.remainingYears} an${retirementInfo.remainingYears > 1 ? "s" : ""} restant${retirementInfo.remainingYears > 1 ? "s" : ""}).`}
+                                </p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
