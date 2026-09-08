@@ -133,4 +133,69 @@ class Employee(models.Model):
         ordering = ["-date_creation"]
 
     def __str__(self):
-        return f"{self.user.get_full_name()} ({self.poste})"  
+        return f"{self.user.get_full_name()} ({self.poste})"
+
+
+class EmployeeHistory(models.Model):
+    FIELD_CHOICES = [
+        ("embauche", "Embauche"),
+        ("stage", "Début de stage"),
+        ("promotion", "Promotion"),
+        ("poste", "Changement de poste"),
+        ("salaire", "Ajustement salarial"),
+        ("transfert", "Transfert de département"),
+        ("changement_contrat", "Changement de contrat"),
+        ("depart", "Départ / Fin de contrat"),
+        ("autre", "Autre jalon"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="employee_histories",
+    )
+    employee = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="history",
+    )
+    field = models.CharField(
+        max_length=50,
+        choices=FIELD_CHOICES,
+        help_text="Type d'événement de carrière",
+    )
+    old_value = models.TextField(blank=True, default="", help_text="Valeur précédente")
+    new_value = models.TextField(blank=True, default="", help_text="Nouvelle valeur")
+    contract_type = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+        help_text="Type de contrat concerné",
+    )
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="history_events",
+        help_text="Département concerné",
+    )
+    change_date = models.DateField(help_text="Date de l'événement")
+    reason = models.TextField(blank=True, default="", help_text="Motif ou note libre")
+    created_by = models.ForeignKey(
+        "accounts.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="recorded_career_events",
+    )
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["change_date", "date_creation"]
+        verbose_name = "Événement de carrière"
+        verbose_name_plural = "Parcours professionnel"
+
+    def __str__(self):
+        return f"{self.employee} - {self.get_field_display()} ({self.change_date})"

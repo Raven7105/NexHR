@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, Link } from "react-router-dom";
 import { Menu, Calendar, LogOut } from "lucide-react";
 import Sidebar from "./Sidebar";
 import NotificationsPopover from "./NotificationsPopover";
@@ -61,12 +61,16 @@ export default function DashboardLayout() {
                         <div className="h-6 w-px bg-border/80 hidden sm:block" />
 
                         {/* Badge Profil Utilisateur */}
-                        <div className="flex items-center gap-2.5 bg-muted/30 border border-border/60 rounded-xl px-2.5 py-1.5">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary/20 via-primary/10 to-transparent text-primary border border-primary/30 flex items-center justify-center font-bold text-xs shadow-sm shrink-0">
+                        <Link
+                            to={user?.employee_profile?.id ? `/employees/${user.employee_profile.id}` : "/employees"}
+                            title="Consulter mon profil et parcours"
+                            className="flex items-center gap-2.5 bg-muted/30 hover:bg-muted/60 border border-border/60 rounded-xl px-2.5 py-1.5 transition-colors group cursor-pointer"
+                        >
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary/20 via-primary/10 to-transparent text-primary border border-primary/30 flex items-center justify-center font-bold text-xs shadow-sm shrink-0 group-hover:scale-105 transition-transform">
                                 {user?.email ? user.email.charAt(0).toUpperCase() : "U"}
                             </div>
                             <div className="hidden sm:flex flex-col text-left min-w-0">
-                                <span className="text-xs font-semibold text-foreground truncate max-w-[170px] leading-tight">
+                                <span className="text-xs font-semibold text-foreground group-hover:text-primary truncate max-w-[170px] leading-tight transition-colors">
                                     {user?.email}
                                 </span>
                                 <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1 mt-0.5">
@@ -74,7 +78,7 @@ export default function DashboardLayout() {
                                     {user?.role ? (roleLabels[user.role] ?? user.role) : "Connecté"}
                                 </span>
                             </div>
-                        </div>
+                        </Link>
 
                         {/* Action de Déconnexion */}
                         <button

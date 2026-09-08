@@ -12,6 +12,7 @@ import {
     X,
     TrendingUp,
     FileCheck2,
+    Milestone,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useLeaveRequests } from "../hooks/useLeaves";
@@ -44,7 +45,7 @@ const ceoConfigItems = [
 // Navigation Standard pour les autres rôles
 const navItems = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["superadmin", "super_admin", "responsable_rh", "admin_rh", "manager", "employe"] },
-    { to: "/employees", label: "Employés", icon: Users, roles: ["superadmin", "super_admin", "responsable_rh", "admin_rh", "manager"] },
+    { to: "/employees", label: "Employés", icon: Users, roles: ["superadmin", "super_admin", "responsable_rh", "admin_rh", "manager", "employe"] },
     { to: "/departments", label: "Départements", icon: Building2, roles: ["superadmin", "super_admin", "responsable_rh", "admin_rh"] },
     { to: "/attendance", label: "Présences", icon: Clock, roles: ["superadmin", "super_admin", "responsable_rh", "admin_rh", "manager", "employe"] },
     { to: "/calendar", label: "Calendrier", icon: Calendar, roles: ["superadmin", "super_admin", "responsable_rh", "admin_rh", "manager", "employe"] },
@@ -75,7 +76,20 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const { data: leavesData } = useLeaveRequests();
     const pendingCeoCount = leavesData?.results?.filter((r) => r.statut === "PENDING_CEO").length ?? 0;
 
-    const visibleNavItems = isCeo ? ceoNavItems : navItems.filter((item) => user && item.roles.includes(user.role));
+    const userProfileId = user?.employee_profile?.id;
+    const computedNavItems = navItems.map((item) => {
+        if (item.to === "/employees" && user?.role === "employe") {
+            return {
+                ...item,
+                to: userProfileId ? `/employees/${userProfileId}` : "/employees",
+                label: "Mon parcours",
+                icon: Milestone,
+            };
+        }
+        return item;
+    });
+
+    const visibleNavItems = isCeo ? ceoNavItems : computedNavItems.filter((item) => user && item.roles.includes(user.role));
     const visibleConfigItems = isCeo ? ceoConfigItems : configItems.filter((item) => user && item.roles.includes(user.role));
 
     return (

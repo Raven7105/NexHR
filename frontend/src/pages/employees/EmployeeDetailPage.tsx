@@ -2,6 +2,8 @@ import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Mail, Briefcase, Calendar, Building2, BadgeCheck, Wallet, UserRound, Phone } from "lucide-react";
 import { useEmployee } from "@/hooks/useEmployees";
 import { useLeaveRequests } from "@/hooks/useLeaves";
+import { useAuth } from "@/context/AuthContext";
+import CareerHistory from "@/components/CareerHistory";
 
 const STATUT_STYLES: Record<string, string> = {
     actif: "bg-green-100 text-green-700",
@@ -11,8 +13,13 @@ const STATUT_STYLES: Record<string, string> = {
 
 export default function EmployeeDetailPage() {
     const { id } = useParams<{ id: string }>();
+    const { user } = useAuth();
     const { data: employee, isLoading, isError } = useEmployee(id ?? "");
     const { data: leavesData } = useLeaveRequests({ employee: id, statut: "approuve" });
+
+    const canManage = Boolean(
+        user && ["responsable_rh", "admin_rh", "pdg", "superadmin"].includes(user.role)
+    );
 
     const today = new Date().toISOString().split("T")[0];
     const currentLeave = leavesData?.results.find(
@@ -31,8 +38,8 @@ export default function EmployeeDetailPage() {
         return (
             <div className="flex flex-col items-center justify-center h-64 gap-3">
                 <p className="text-muted-foreground">Employé introuvable.</p>
-                <Link to="/employees" className="text-sm text-blue-600 hover:underline">
-                    Retour à la liste
+                <Link to={user?.role === "employe" ? "/dashboard" : "/employees"} className="text-sm text-blue-600 hover:underline">
+                    {user?.role === "employe" ? "Retour au tableau de bord" : "Retour à la liste"}
                 </Link>
             </div>
         );
@@ -41,11 +48,11 @@ export default function EmployeeDetailPage() {
     return (
         <div>
             <Link
-                to="/employees"
+                to={user?.role === "employe" ? "/dashboard" : "/employees"}
                 className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
             >
                 <ArrowLeft size={16} />
-                Retour à la liste
+                {user?.role === "employe" ? "Retour au tableau de bord" : "Retour à la liste"}
             </Link>
 
             <div className="bg-card border border-border rounded-xl p-6 mb-6 shadow-sm">
@@ -80,9 +87,11 @@ export default function EmployeeDetailPage() {
                             </div>
                         </div>
                     </div>
-                    <Link to={`/employees/${id}/edit`} className="px-3 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:opacity-90 transition-opacity">
-                        Modifier
-                    </Link>
+                    {canManage && (
+                        <Link to={`/employees/${id}/edit`} className="px-3 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:opacity-90 transition-opacity">
+                            Modifier
+                        </Link>
+                    )}
                 </div>
             </div>
 
@@ -123,6 +132,11 @@ export default function EmployeeDetailPage() {
                 <p className="text-sm text-muted-foreground">
                     {employee.nom_complet} travaille en tant que <span className="font-medium text-foreground">{employee.poste}</span> dans le département <span className="font-medium text-foreground">{employee.department_nom ?? "non défini"}</span>.
                 </p>
+            </div>
+
+            {/* Parcours et Historique professionnel */}
+            <div className="mt-6">
+                <CareerHistory employee={employee} canManage={canManage} />
             </div>
         </div>
     );

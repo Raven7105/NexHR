@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Department, Employee
+from .models import Department, Employee, EmployeeHistory
 from django.db import transaction
 from apps.accounts.models import User
 
@@ -76,6 +76,8 @@ class EmployeeCreateSerializer(serializers.Serializer):
 
 
 class EmployeeUpdateSerializer(serializers.ModelSerializer):
+    change_reason = serializers.CharField(required=False, allow_blank=True, write_only=True, default="")
+
     class Meta:
         model = Employee
         fields = [
@@ -92,7 +94,47 @@ class EmployeeUpdateSerializer(serializers.ModelSerializer):
             "statut",
             "matricule",
             "is_active",
+            "change_reason",
         ]
+
+
+class EmployeeHistorySerializer(serializers.ModelSerializer):
+    employee_nom = serializers.SerializerMethodField()
+    department_nom = serializers.CharField(source="department.nom", read_only=True, default=None)
+    created_by_nom = serializers.SerializerMethodField()
+    field_display = serializers.CharField(source="get_field_display", read_only=True)
+
+    class Meta:
+        model = EmployeeHistory
+        fields = [
+            "id",
+            "company",
+            "employee",
+            "employee_nom",
+            "field",
+            "field_display",
+            "old_value",
+            "new_value",
+            "contract_type",
+            "department",
+            "department_nom",
+            "change_date",
+            "reason",
+            "created_by",
+            "created_by_nom",
+            "date_creation",
+        ]
+        read_only_fields = ("company", "date_creation", "created_by")
+
+    def get_employee_nom(self, obj):
+        if obj.employee and obj.employee.user:
+            return obj.employee.user.get_full_name() or obj.employee.user.email
+        return None
+
+    def get_created_by_nom(self, obj):
+        if obj.created_by:
+            return obj.created_by.get_full_name() or obj.created_by.email
+        return None
 
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):

@@ -72,7 +72,7 @@ export interface Employee {
 }
 
 export type CreateEmployeeInput = Omit<Employee, "id" | "matricule" | "is_active" | "deleted_at">;
-export type UpdateEmployeeInput = Partial<CreateEmployeeInput>;
+export type UpdateEmployeeInput = Partial<CreateEmployeeInput> & { change_reason?: string };
 
 export interface CreateEmployeeWithUserInput {
     email: string;
@@ -226,4 +226,45 @@ export interface PaginatedResponse<T> {
     next: string | null;
     previous: string | null;
     results: T[];
+}
+
+export type CareerEventType =
+    | "embauche"
+    | "stage"
+    | "promotion"
+    | "poste"
+    | "salaire"
+    | "transfert"
+    | "changement_contrat"
+    | "depart"
+    | "autre";
+
+export interface EmployeeHistory {
+    id: string;
+    company: string;
+    employee: string;
+    employee_nom?: string;
+    field: CareerEventType;
+    field_display?: string;
+    old_value: string;
+    new_value: string;
+    contract_type?: string;
+    department?: string | null;
+    department_nom?: string | null;
+    change_date: string;
+    reason: string;
+    created_by?: string | null;
+    created_by_nom?: string | null;
+    date_creation: string;
+}
+
+export interface CreateEmployeeHistoryInput {
+    employee: string;
+    field: CareerEventType;
+    old_value?: string;
+    new_value?: string;
+    contract_type?: string;
+    department?: string | null;
+    change_date: string;
+    reason?: string;
 }

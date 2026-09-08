@@ -125,6 +125,23 @@ export default function EmployeeEditPage() {
                         <input type="tel" value={formData.phone_number ?? ""} onChange={(e) => handleChange("phone_number", e.target.value)} className={inputClass} placeholder="+221 77 123 45 67" />
                     </div>
                 </div>
+
+                <div className="bg-card border border-border rounded-xl p-5 space-y-2">
+                    <label className={labelClass}>
+                        Motif de la modification <span className="text-muted-foreground text-xs font-normal">(optionnel)</span>
+                    </label>
+                    <p className="text-xs text-muted-foreground mb-2">
+                        Si vous modifiez le poste, le salaire, le département ou le type de contrat, ce motif sera automatiquement consigné dans la frise chronologique du parcours professionnel.
+                    </p>
+                    <textarea
+                        rows={2}
+                        value={formData.change_reason ?? ""}
+                        onChange={(e) => handleChange("change_reason", e.target.value)}
+                        className={inputClass}
+                        placeholder="Ex: Promotion annuelle, réévaluation salariale, transfert de service..."
+                    />
+                </div>
+
                 <div className="flex justify-end gap-3">
                     <Link to={`/employees/${id}`} className="px-4 py-2 rounded-lg text-sm font-medium border border-border text-foreground hover:bg-muted transition-colors">Annuler</Link>
                     <button type="submit" disabled={updateEmployee.isPending} className="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity">
