@@ -77,16 +77,36 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pendingCeoCount = leavesData?.results?.filter((r) => r.statut === "PENDING_CEO").length ?? 0;
 
     const userProfileId = user?.employee_profile?.id;
-    const computedNavItems = navItems.map((item) => {
-        if (item.to === "/employees" && user?.role === "employe") {
-            return {
-                ...item,
-                to: userProfileId ? `/employees/${userProfileId}` : "/employees",
-                label: "Mon parcours",
-                icon: Milestone,
-            };
+    const computedNavItems = navItems.flatMap((item) => {
+        if (item.to === "/employees") {
+            if (user?.role === "employe") {
+                return [
+                    {
+                        ...item,
+                        to: userProfileId ? `/employees/${userProfileId}` : "/employees",
+                        label: "Mon parcours",
+                        icon: Milestone,
+                    },
+                ];
+            }
+            if (user?.role === "manager") {
+                return [
+                    {
+                        to: userProfileId ? `/employees/${userProfileId}` : "/employees",
+                        label: "Mon parcours",
+                        icon: Milestone,
+                        roles: ["manager"],
+                    },
+                    {
+                        to: "/employees",
+                        label: "Mon équipe",
+                        icon: Users,
+                        roles: ["manager"],
+                    },
+                ];
+            }
         }
-        return item;
+        return [item];
     });
 
     const visibleNavItems = isCeo ? ceoNavItems : computedNavItems.filter((item) => user && item.roles.includes(user.role));

@@ -47,6 +47,18 @@ export interface Department {
     manager: string | null;
 }
 
+export interface SubordinateBrief {
+    id: string;
+    nom_complet: string;
+    matricule: string;
+    poste: string;
+    department_nom: string | null;
+    type_contrat: "cdi" | "cdd" | "stage" | "freelance";
+    date_embauche: string;
+    statut: "actif" | "inactif" | "suspendu" | "en_conge";
+    salaire_de_base: string | number;
+}
+
 export interface Employee {
     id: string;
     nom_complet: string;
@@ -67,6 +79,8 @@ export interface Employee {
     company: string;
     department: string | null;
     manager: string | null;
+    subordinates?: SubordinateBrief[];
+    subordinates_count?: number;
     is_active: boolean;
     deleted_at: string | null;
 }
@@ -237,7 +251,14 @@ export type CareerEventType =
     | "transfert"
     | "changement_contrat"
     | "depart"
+    | "recommandation"
     | "autre";
+
+export interface RecommendEvolutionInput {
+    evolution_type: "promotion" | "salaire" | "changement_contrat" | "transfert" | "autre";
+    proposed_value: string;
+    justification: string;
+}
 
 export interface EmployeeHistory {
     id: string;

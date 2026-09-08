@@ -158,7 +158,12 @@ class EmployeeViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):
     queryset = Employee.objects.filter(is_active=True, deleted_at__isnull=True)
     serializer_class = EmployeeSerializer
     permission_classes = [IsAdminOnlyOrReadOnly]
-    filterset_fields = ["department", "statut", "type_contrat"]
+    filterset_fields = ["department", "statut", "type_contrat", "manager"]
+
+    def get_permissions(self):
+        if self.action == "recommend_evolution":
+            return [IsAdminOrManagerOrReadOnly()]
+        return [permission() for permission in self.permission_classes]
 
     def get_queryset(self):
         queryset = super().get_queryset().filter(is_active=True, deleted_at__isnull=True)
@@ -236,6 +241,83 @@ class EmployeeViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):
         instance.refresh_from_db()
         _record_employee_changes(instance, old_state, reason, request.user)
         return Response(EmployeeSerializer(instance).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="recommend-evolution")
+    def recommend_evolution(self, request, pk=None):
+        employee = self.get_object()
+        user = request.user
+        if not user or not user.is_authenticated:
+            return Response({"detail": "Non authentifié."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        profile = getattr(user, "employee_profile", None)
+
+        # Autorisation : manager direct de l'employé ou administration RH / Direction
+        is_direct_manager = bool(profile and employee.manager_id == profile.id)
+        is_hr_or_admin = user.role in ["responsable_rh", "admin_rh", "superadmin", "pdg"]
+
+        if not (is_direct_manager or is_hr_or_admin):
+            return Response(
+                {"detail": "Vous ne pouvez recommander une évolution que pour les collaborateurs sous votre responsabilité directe."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        evolution_type = request.data.get("evolution_type", "promotion")
+        proposed_value = (request.data.get("proposed_value") or "").strip()
+        justification = (request.data.get("justification") or "").strip()
+
+        if not justification:
+            return Response(
+                {"detail": "Une justification managériale est requise."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        evolution_labels = {
+            "promotion": "Promotion de poste",
+            "salaire": "Revalorisation salariale",
+            "changement_contrat": "Changement / Pérennisation de contrat",
+            "transfert": "Transfert de département",
+            "autre": "Évolution de carrière",
+        }
+        evolution_label = evolution_labels.get(evolution_type, evolution_type)
+
+        history_item = EmployeeHistory.objects.create(
+            company=employee.company,
+            employee=employee,
+            field="recommandation",
+            old_value=f"Type: {evolution_label}",
+            new_value=proposed_value,
+            change_date=timezone.now().date(),
+            reason=f"[Recommandation managériale par {user.get_full_name() or user.email}] {justification}",
+            created_by=user,
+        )
+
+        # Notifier les équipes RH et Direction
+        from apps.accounts.models import User
+        from apps.notifications.utils import create_notification
+        hr_users = User.objects.filter(
+            company=employee.company,
+            role__in=["responsable_rh", "admin_rh", "superadmin", "pdg"],
+        ).exclude(pk=user.pk)
+
+        emp_name = employee.user.get_full_name() if employee.user else employee.poste
+        mgr_name = user.get_full_name() or user.email
+
+        for hr_user in hr_users:
+            create_notification(
+                recipient=hr_user,
+                title=f"Recommandation RH ({mgr_name}) : {emp_name}",
+                message=f"Le manager {mgr_name} recommande une évolution ({evolution_label} : {proposed_value}) pour {emp_name}.\nMotif: {justification}",
+                link=f"/employees/{employee.id}",
+            )
+
+        return Response(
+            {
+                "status": "success",
+                "message": "Votre recommandation a été transmise aux Ressources Humaines avec succès.",
+                "history_id": str(history_item.id),
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class EmployeeHistoryViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):

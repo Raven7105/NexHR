@@ -274,6 +274,10 @@ export default function CareerChart({ employee, history }: CareerChartProps) {
                 title = `Contrat : ${item.new_value?.toUpperCase()}`;
                 dotColor = "#06b6d4"; // Cyan
                 badge = "Contrat";
+            } else if (item.field === "recommandation") {
+                title = `Recommandation : ${item.new_value || "Proposition RH"}`;
+                dotColor = "#d97706"; // Amber
+                badge = "Recommandation";
             } else {
                 title = `${item.field.toUpperCase()} : ${item.new_value}`;
                 dotColor = "#64748b";

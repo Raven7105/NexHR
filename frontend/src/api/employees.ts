@@ -53,3 +53,15 @@ export async function updateEmployee(
 export async function deleteEmployee(id: string): Promise<void> {
     await api.delete(`/employees/${id}/`);
 }
+
+export async function recommendEvolution(
+    employeeId: string,
+    data: {
+        evolution_type: string;
+        proposed_value: string;
+        justification: string;
+    }
+): Promise<{ status: string; message: string; history_id: string }> {
+    const response = await api.post(`/employees/${employeeId}/recommend-evolution/`, data);
+    return response.data;
+}

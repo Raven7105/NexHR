@@ -1,9 +1,24 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Mail, Briefcase, Calendar, Building2, BadgeCheck, Wallet, UserRound, Phone } from "lucide-react";
+import {
+    ArrowLeft,
+    Mail,
+    Briefcase,
+    Calendar,
+    Building2,
+    BadgeCheck,
+    Wallet,
+    UserRound,
+    Phone,
+    ShieldCheck,
+    Sparkles,
+} from "lucide-react";
 import { useEmployee } from "@/hooks/useEmployees";
 import { useLeaveRequests } from "@/hooks/useLeaves";
 import { useAuth } from "@/context/AuthContext";
 import CareerHistory from "@/components/CareerHistory";
+import ManagerTeamCareerCard from "@/components/ManagerTeamCareerCard";
+import RecommendEvolutionModal from "@/components/RecommendEvolutionModal";
 
 const STATUT_STYLES: Record<string, string> = {
     actif: "bg-green-100 text-green-700",
@@ -16,9 +31,19 @@ export default function EmployeeDetailPage() {
     const { user } = useAuth();
     const { data: employee, isLoading, isError } = useEmployee(id ?? "");
     const { data: leavesData } = useLeaveRequests({ employee: id, statut: "approuve" });
+    const [isRecommendModalOpen, setIsRecommendModalOpen] = useState(false);
 
     const canManage = Boolean(
         user && ["responsable_rh", "admin_rh", "pdg", "superadmin"].includes(user.role)
+    );
+
+    const isManager = user?.role === "manager";
+    const userProfileId = user?.employee_profile?.id;
+    const isOwnProfile = Boolean(userProfileId && employee?.id === userProfileId);
+    const isMySubordinate = Boolean(
+        isManager &&
+        userProfileId &&
+        employee?.manager === userProfileId
     );
 
     const today = new Date().toISOString().split("T")[0];
@@ -38,22 +63,67 @@ export default function EmployeeDetailPage() {
         return (
             <div className="flex flex-col items-center justify-center h-64 gap-3">
                 <p className="text-muted-foreground">Employé introuvable.</p>
-                <Link to={user?.role === "employe" ? "/dashboard" : "/employees"} className="text-sm text-blue-600 hover:underline">
+                <Link
+                    to={user?.role === "employe" ? "/dashboard" : "/employees"}
+                    className="text-sm text-blue-600 hover:underline"
+                >
                     {user?.role === "employe" ? "Retour au tableau de bord" : "Retour à la liste"}
                 </Link>
             </div>
         );
     }
 
+    const backLink = user?.role === "employe" ? "/dashboard" : "/employees";
+    const backLabel = user?.role === "employe"
+        ? "Retour au tableau de bord"
+        : user?.role === "manager"
+        ? "Retour à mon équipe"
+        : "Retour à la liste";
+
     return (
         <div>
             <Link
-                to={user?.role === "employe" ? "/dashboard" : "/employees"}
+                to={backLink}
                 className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
             >
                 <ArrowLeft size={16} />
-                {user?.role === "employe" ? "Retour au tableau de bord" : "Retour à la liste"}
+                {backLabel}
             </Link>
+
+            {/* Bandeau de Supervision Managériale (quand un manager consulte un collaborateur de son équipe) */}
+            {isMySubordinate && (
+                <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-transparent border-2 border-blue-500/30 rounded-2xl p-5 mb-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3.5">
+                        <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20 shrink-0">
+                            <ShieldCheck size={22} />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h3 className="text-sm sm:text-base font-bold text-foreground">
+                                    Supervision Managériale Directe
+                                </h3>
+                                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30">
+                                    Membre de votre équipe
+                                </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1 leading-relaxed max-w-xl">
+                                Vous êtes le manager référent de{" "}
+                                <span className="font-semibold text-foreground">{employee.nom_complet}</span>.
+                                Vous suivez l'ensemble de sa trajectoire de carrière et pouvez soumettre des recommandations d'évolution aux RH.
+                            </p>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={() => setIsRecommendModalOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs sm:text-sm font-semibold shadow-md shadow-primary/20 hover:opacity-95 transition-all self-start sm:self-auto shrink-0 cursor-pointer"
+                    >
+                        <Sparkles size={16} />
+                        Recommander une évolution RH
+                    </button>
+                </div>
+            )}
 
             <div className="bg-card border border-border rounded-xl p-6 mb-6 shadow-sm">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -67,6 +137,12 @@ export default function EmployeeDetailPage() {
                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUT_STYLES[employee.statut]}`}>
                                     {employee.statut}
                                 </span>
+                                {isManager && isOwnProfile && (
+                                    <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 flex items-center gap-1">
+                                        <ShieldCheck size={13} />
+                                        Manager Référent
+                                    </span>
+                                )}
                                 {currentLeave && (
                                     <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
                                         En congé jusqu'au {currentLeave.date_fin}
@@ -134,10 +210,29 @@ export default function EmployeeDetailPage() {
                 </p>
             </div>
 
-            {/* Parcours et Historique professionnel */}
+            {/* LE PLUS EXCLUSIF DU MANAGER : Espace Management & Carrière d'Équipe (quand le manager consulte son propre profil) */}
+            {isManager && isOwnProfile && (
+                <div className="mt-6">
+                    <ManagerTeamCareerCard
+                        subordinates={employee.subordinates || []}
+                        managerName={employee.nom_complet}
+                    />
+                </div>
+            )}
+
+            {/* Parcours et Historique professionnel (Accessible à la fois pour l'employé, le manager et les RH) */}
             <div className="mt-6">
                 <CareerHistory employee={employee} canManage={canManage} />
             </div>
+
+            {/* Modal de Recommandation Managériale pour le collaborateur supervisé */}
+            {isMySubordinate && (
+                <RecommendEvolutionModal
+                    isOpen={isRecommendModalOpen}
+                    onClose={() => setIsRecommendModalOpen(false)}
+                    singleEmployee={employee}
+                />
+            )}
         </div>
     );
 }

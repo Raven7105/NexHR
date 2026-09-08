@@ -11,10 +11,28 @@ class DepartmentSerializer(serializers.ModelSerializer):
         read_only_fields = ("company",)
 
 
+class SubordinateBriefSerializer(serializers.ModelSerializer):
+    nom_complet = serializers.SerializerMethodField()
+    department_nom = serializers.CharField(source="department.nom", read_only=True, default=None)
+
+    class Meta:
+        model = Employee
+        fields = [
+            "id", "nom_complet", "matricule", "poste", "department_nom",
+            "type_contrat", "date_embauche", "statut", "salaire_de_base"
+        ]
+
+    def get_nom_complet(self, obj):
+        full_name = obj.user.get_full_name()
+        return full_name if full_name else obj.user.email
+
+
 class EmployeeSerializer(serializers.ModelSerializer):
     nom_complet = serializers.SerializerMethodField()
     email = serializers.EmailField(source="user.email", read_only=True)
     department_nom = serializers.CharField(source="department.nom", read_only=True, default=None)
+    subordinates = SubordinateBriefSerializer(many=True, read_only=True)
+    subordinates_count = serializers.IntegerField(source="subordinates.count", read_only=True)
 
     class Meta:
         model = Employee

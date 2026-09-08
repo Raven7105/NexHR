@@ -111,4 +111,8 @@ class IsAdminOnlyOrReadOnly(BasePermission):
         if request.method in SAFE_METHODS:
             return True
 
-        return request.user.role in ["responsable_rh", "admin_rh", "pdg", "superadmin"]
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and getattr(request.user, "role", None) in ["responsable_rh", "admin_rh", "pdg", "superadmin"]
+        )

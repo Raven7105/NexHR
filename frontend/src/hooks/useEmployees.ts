@@ -7,12 +7,14 @@ import {
     updateEmployee,
     deleteEmployee,
     createEmployeeWithUser,
+    recommendEvolution,
     type EmployeeFilters,
 } from "@/api/employees";
 import type {
     CreateEmployeeInput,
     CreateEmployeeWithUserInput,
     UpdateEmployeeInput,
+    RecommendEvolutionInput,
 } from "@/types";
 
 export function useEmployees(filters: EmployeeFilters = {}) {
@@ -90,4 +92,21 @@ export function useCreateEmployeeWithUser() {
       toast.error(message);
     },
   });
+}
+
+export function useRecommendEvolution() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, data }: { id: string; data: RecommendEvolutionInput }) =>
+            recommendEvolution(id, data),
+        onSuccess: (_res, variables) => {
+            queryClient.invalidateQueries({ queryKey: ["employees"] });
+            queryClient.invalidateQueries({ queryKey: ["employee", variables.id] });
+            queryClient.invalidateQueries({ queryKey: ["employee-history"] });
+            toast.success("Votre recommandation a été transmise aux Ressources Humaines avec succès.");
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.detail || "Impossible de soumettre la recommandation.");
+        },
+    });
 }

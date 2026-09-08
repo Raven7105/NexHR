@@ -43,10 +43,16 @@ export default function EmployeesPage() {
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground">
-                        {user?.role === "employe" ? "Mon profil" : "Employés"}
+                        {user?.role === "employe"
+                            ? "Mon profil"
+                            : user?.role === "manager"
+                            ? "Mon équipe supervisée"
+                            : "Employés"}
                     </h1>
                     <p className="text-muted-foreground text-sm mt-1">
-                        {visibleEmployees.length} employé{visibleEmployees.length > 1 ? "s" : ""}
+                        {user?.role === "manager"
+                            ? `${visibleEmployees.length} collaborateur${visibleEmployees.length > 1 ? "s" : ""} sous votre responsabilité`
+                            : `${visibleEmployees.length} employé${visibleEmployees.length > 1 ? "s" : ""}`}
                     </p>
                 </div>
 

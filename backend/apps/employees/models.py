@@ -146,6 +146,7 @@ class EmployeeHistory(models.Model):
         ("transfert", "Transfert de département"),
         ("changement_contrat", "Changement de contrat"),
         ("depart", "Départ / Fin de contrat"),
+        ("recommandation", "Recommandation managériale"),
         ("autre", "Autre jalon"),
     ]
 

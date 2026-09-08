@@ -91,6 +91,12 @@ const EVENT_CONFIGS: Record<CareerEventType, EventConfig> = {
         iconBg: "bg-slate-500 text-white ring-4 ring-slate-100 dark:ring-slate-950/40",
         badgeBg: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700",
     },
+    recommandation: {
+        label: "Recommandation Managériale",
+        icon: Award,
+        iconBg: "bg-amber-600 text-white ring-4 ring-amber-100 dark:ring-amber-950/40",
+        badgeBg: "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200 border-amber-300 dark:border-amber-700",
+    },
 };
 
 function formatFrenchDate(dateStr: string) {
