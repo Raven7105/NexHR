@@ -287,21 +287,46 @@ class EmployeeHistoryViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):
         # Synchronisation automatique sur la fiche de l'employé
         if employee:
             update_fields = []
+            # 1. Ajustement salarial
             if history_item.field == "salaire" and history_item.new_value:
                 try:
                     employee.salaire_de_base = Decimal(str(history_item.new_value))
                     update_fields.append("salaire_de_base")
                 except Exception:
                     pass
+            # 2. Promotion ou changement de poste
             elif history_item.field in ("promotion", "poste") and history_item.new_value:
                 employee.poste = history_item.new_value
                 update_fields.append("poste")
-            elif history_item.field == "changement_contrat" and history_item.new_value:
-                employee.type_contrat = history_item.new_value
-                update_fields.append("type_contrat")
-            elif history_item.field == "transfert" and history_item.department:
-                employee.department = history_item.department
-                update_fields.append("department")
+            # 3. Changement de type de contrat (CDI, CDD, Stage, Freelance)
+            elif history_item.field in ("changement_contrat", "stage", "embauche"):
+                raw_contract = (history_item.contract_type or history_item.new_value or "").lower().strip()
+                if raw_contract in ["cdi", "cdd", "stage", "freelance"]:
+                    employee.type_contrat = raw_contract
+                    update_fields.append("type_contrat")
+            # 4. Transfert de département
+            elif history_item.field == "transfert":
+                if history_item.department:
+                    employee.department = history_item.department
+                    update_fields.append("department")
+                elif history_item.new_value:
+                    from apps.employees.models import Department
+                    dept = Department.objects.filter(company=employee.company, nom__iexact=history_item.new_value.strip()).first()
+                    if dept:
+                        employee.department = dept
+                        update_fields.append("department")
+            # 5. Départ ou changement de statut
+            elif history_item.field == "depart":
+                employee.statut = "inactif"
+                update_fields.append("statut")
+                if history_item.change_date:
+                    employee.date_fin_contrat = history_item.change_date
+                    update_fields.append("date_fin_contrat")
+            elif history_item.field == "statut" and history_item.new_value:
+                raw_statut = history_item.new_value.lower().strip()
+                if raw_statut in ["actif", "inactif", "suspendu", "en_conge"]:
+                    employee.statut = raw_statut
+                    update_fields.append("statut")
 
             if update_fields:
-                employee.save(update_fields=update_fields)
+                employee.save(update_fields=list(set(update_fields)))

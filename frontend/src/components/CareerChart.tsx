@@ -209,7 +209,7 @@ export default function CareerChart({ employee, history }: CareerChartProps) {
         // 1. Point d'Embauche initial
         const hireDateStr = employee.date_embauche || new Date().toISOString().split("T")[0];
         const embaucheHistory = sortedHistory.find((e) => e.field === "embauche");
-        const contractLabel = employee.type_contrat ? employee.type_contrat.toUpperCase() : "CDI";
+        const initialContract = (embaucheHistory?.contract_type || embaucheHistory?.new_value || employee.type_contrat || "CDI").toUpperCase();
 
         points.push({
             chartKey: `hire_${hireDateStr}`,
@@ -222,7 +222,7 @@ export default function CareerChart({ employee, history }: CareerChartProps) {
             phase: "realized",
             eventTitle: `Embauche : ${embaucheHistory?.new_value || employee.poste}`,
             eventField: "embauche",
-            eventReason: embaucheHistory?.reason || `Intégration en contrat ${contractLabel}`,
+            eventReason: embaucheHistory?.reason || `Intégration initiale en contrat ${initialContract}`,
             isMilestone: true,
             dotColor: "#10b981", // Emerald
             badgeLabel: "Embauche",
@@ -493,7 +493,7 @@ export default function CareerChart({ employee, history }: CareerChartProps) {
                     <p className="text-base font-bold text-foreground capitalize">{tenure.text}</p>
                     <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
                         <Sparkles size={11} className="text-emerald-500" />
-                        Entrée le {formatShortDate(employee.date_embauche || "")} ({employee.type_contrat?.toUpperCase() || "CDI"})
+                        Entrée le {formatShortDate(employee.date_embauche || "")} • Contrat : {employee.type_contrat?.toUpperCase() || "CDI"}
                     </p>
                 </div>
 

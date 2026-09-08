@@ -41,6 +41,7 @@ export function useDeleteEmployeeHistory() {
         mutationFn: (id: string) => deleteEmployeeHistory(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["employee-history"] });
+            queryClient.invalidateQueries({ queryKey: ["employees"] });
             toast.success("Événement supprimé.");
         },
         onError: (error: any) => {
