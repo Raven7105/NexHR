@@ -278,10 +278,30 @@ class EmployeeHistoryViewSet(CompanyScopedQuerySetMixin, viewsets.ModelViewSet):
         employee = serializer.validated_data.get("employee")
         if not company and employee:
             company = employee.company
-        if not company and getattr(user, "employee_profile", None):
-            company = getattr(user.employee_profile, "company", None)
         if not company:
             from apps.companies.models import Company
             company = Company.objects.first()
 
-        serializer.save(company=company, created_by=user if user.is_authenticated else None)
+        history_item = serializer.save(company=company, created_by=user if user.is_authenticated else None)
+
+        # Synchronisation automatique sur la fiche de l'employé
+        if employee:
+            update_fields = []
+            if history_item.field == "salaire" and history_item.new_value:
+                try:
+                    employee.salaire_de_base = Decimal(str(history_item.new_value))
+                    update_fields.append("salaire_de_base")
+                except Exception:
+                    pass
+            elif history_item.field in ("promotion", "poste") and history_item.new_value:
+                employee.poste = history_item.new_value
+                update_fields.append("poste")
+            elif history_item.field == "changement_contrat" and history_item.new_value:
+                employee.type_contrat = history_item.new_value
+                update_fields.append("type_contrat")
+            elif history_item.field == "transfert" and history_item.department:
+                employee.department = history_item.department
+                update_fields.append("department")
+
+            if update_fields:
+                employee.save(update_fields=update_fields)

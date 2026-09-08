@@ -32,6 +32,7 @@ interface CareerChartProps {
 type ProjectionMode = "dynamic" | "conservative";
 
 interface TrajectoryPoint {
+    chartKey: string;
     date: string;
     displayDate: string;
     formattedDate: string;
@@ -211,6 +212,7 @@ export default function CareerChart({ employee, history }: CareerChartProps) {
         const contractLabel = employee.type_contrat ? employee.type_contrat.toUpperCase() : "CDI";
 
         points.push({
+            chartKey: `hire_${hireDateStr}`,
             date: hireDateStr,
             displayDate: formatShortDate(hireDateStr),
             formattedDate: formatFullDate(hireDateStr),
@@ -231,7 +233,7 @@ export default function CareerChart({ employee, history }: CareerChartProps) {
         // 2. Points intermédiaires de l'historique réalisé
         const milestonePoints: TrajectoryPoint[] = [];
 
-        sortedHistory.forEach((item) => {
+        sortedHistory.forEach((item, index) => {
             // Éviter de dupliquer l'embauche si elle correspond à la date initiale
             if (item.field === "embauche" && item.change_date === hireDateStr) {
                 return;
@@ -269,7 +271,7 @@ export default function CareerChart({ employee, history }: CareerChartProps) {
                 dotColor = "#8b5cf6"; // Violet
                 badge = "Transfert";
             } else if (item.field === "changement_contrat") {
-                title = `Contrat : ${item.new_value}`;
+                title = `Contrat : ${item.new_value?.toUpperCase()}`;
                 dotColor = "#06b6d4"; // Cyan
                 badge = "Contrat";
             } else {
@@ -279,6 +281,7 @@ export default function CareerChart({ employee, history }: CareerChartProps) {
             }
 
             const point: TrajectoryPoint = {
+                chartKey: `event_${item.id || index}_${item.change_date}`,
                 date: item.change_date,
                 displayDate: formatShortDate(item.change_date),
                 formattedDate: formatFullDate(item.change_date),
@@ -303,9 +306,10 @@ export default function CareerChart({ employee, history }: CareerChartProps) {
         // 3. Point "Aujourd'hui" (Jalon pivot entre le passé certifié et le futur projeté)
         const now = new Date();
         const todayStr = now.toISOString().split("T")[0];
-        const currSalary = parseFloat(employee.salaire_de_base || String(runningSalary));
+        const currSalary = Math.max(runningSalary, parseFloat(employee.salaire_de_base || "0"));
 
         const presentPoint: TrajectoryPoint = {
+            chartKey: `today_${todayStr}`,
             date: todayStr,
             displayDate: "Aujourd'hui",
             formattedDate: `Aujourd'hui (${now.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })})`,
@@ -325,11 +329,13 @@ export default function CareerChart({ employee, history }: CareerChartProps) {
         if (!lastPoint || lastPoint.date !== todayStr) {
             points.push(presentPoint);
         } else {
-            // Le dernier point est aujourd'hui : on lui assigne projectedSalary pour faire la liaison
+            // Le dernier point est aujourd'hui : on lui assigne projectedSalary pour faire la liaison sans écraser ses propriétés de jalon
             lastPoint.projectedSalary = currSalary;
-            lastPoint.phase = "present";
-            lastPoint.badgeLabel = "Actuel";
-            lastPoint.dotColor = "#2563eb";
+            if (!lastPoint.isMilestone) {
+                lastPoint.phase = "present";
+                lastPoint.badgeLabel = "Actuel";
+                lastPoint.dotColor = "#2563eb";
+            }
         }
 
         // 4. Projections futures vers la Retraite (60 ans)
@@ -353,6 +359,7 @@ export default function CareerChart({ employee, history }: CareerChartProps) {
 
                 const projDateStr = `${year}-06-30`;
                 points.push({
+                    chartKey: `proj_${year}`,
                     date: projDateStr,
                     displayDate: `${year}`,
                     formattedDate: `Projection mi-${year}`,
@@ -377,6 +384,7 @@ export default function CareerChart({ employee, history }: CareerChartProps) {
             // 5. Point Final : Retraite (60 ans)
             const retirementDateStr = retirement.retirementDate.toISOString().split("T")[0];
             const retirementPoint: TrajectoryPoint = {
+                chartKey: `retirement_${retirementYear}`,
                 date: retirementDateStr,
                 displayDate: `${retirementYear} (60 ans)`,
                 formattedDate: `${retirement.formattedRetirementDate} (Départ à 60 ans)`,
@@ -410,6 +418,17 @@ export default function CareerChart({ employee, history }: CareerChartProps) {
             totalGrowthPct: growthPct,
         };
     }, [employee, history, retirement, projectionMode]);
+
+    const todayPoint = useMemo(() => {
+        const todayStr = new Date().toISOString().split("T")[0];
+        return chartData.find((pt) => pt.phase === "present") || chartData.find((pt) => pt.date === todayStr);
+    }, [chartData]);
+
+    const pointsMap = useMemo(() => {
+        const map = new Map<string, TrajectoryPoint>();
+        chartData.forEach((pt) => map.set(pt.chartKey, pt));
+        return map;
+    }, [chartData]);
 
     return (
         <div className="bg-card border border-border rounded-2xl p-6 mb-6 shadow-sm space-y-6">
@@ -604,11 +623,12 @@ export default function CareerChart({ employee, history }: CareerChartProps) {
                         />
 
                         <XAxis
-                            dataKey="displayDate"
+                            dataKey="chartKey"
                             tickLine={false}
                             axisLine={false}
                             tick={{ fontSize: 11, fill: "currentColor" }}
                             className="text-muted-foreground"
+                            tickFormatter={(key) => pointsMap.get(key)?.displayDate ?? key}
                             dy={10}
                         />
 
@@ -622,18 +642,20 @@ export default function CareerChart({ employee, history }: CareerChartProps) {
                         />
 
                         {/* Ligne verticale marquant 'Aujourd'hui' */}
-                        <ReferenceLine
-                            x="Aujourd'hui"
-                            stroke="#2563eb"
-                            strokeDasharray="2 2"
-                            label={{
-                                value: "Aujourd'hui",
-                                position: "insideTopLeft",
-                                fill: "#2563eb",
-                                fontSize: 10,
-                                fontWeight: 600,
-                            }}
-                        />
+                        {todayPoint && (
+                            <ReferenceLine
+                                x={todayPoint.chartKey}
+                                stroke="#2563eb"
+                                strokeDasharray="2 2"
+                                label={{
+                                    value: "Aujourd'hui",
+                                    position: "insideTopLeft",
+                                    fill: "#2563eb",
+                                    fontSize: 10,
+                                    fontWeight: 600,
+                                }}
+                            />
+                        )}
 
                         <Tooltip
                             content={({ active, payload }) => {
@@ -738,10 +760,10 @@ export default function CareerChart({ employee, history }: CareerChartProps) {
                         {/* Marqueurs visuels pour les jalons clés */}
                         {chartData
                             .filter((pt) => pt.isMilestone)
-                            .map((pt, idx) => (
+                            .map((pt) => (
                                 <ReferenceDot
-                                    key={idx}
-                                    x={pt.displayDate}
+                                    key={pt.chartKey}
+                                    x={pt.chartKey}
                                     y={pt.displaySalary}
                                     r={pt.phase === "present" ? 6 : pt.phase === "retirement" ? 6 : 5}
                                     fill={pt.dotColor || "#2563eb"}
